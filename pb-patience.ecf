@@ -19,6 +19,8 @@
 		</capability>
 		<library name="base" location="$ISE_LIBRARY\library\base\base.ecf"/>
 		<library name="wrap_inkview" location="..\wrap_inkview\wrap_inkview.ecf"/>
-		<cluster name="pb-patience" location=".\" recursive="true"/>
+		<cluster name="pb-patience" location=".\">
+			<cluster name="game" location=".\game\"/>
+		</cluster>
 	</target>
 </system>
