@@ -21,6 +21,7 @@
 		<library name="wrap_inkview" location="..\wrap_inkview\wrap_inkview.ecf"/>
 		<cluster name="pb-patience" location=".\">
 			<cluster name="game" location=".\game\"/>
+			<cluster name="gui" location=".\gui\"/>
 		</cluster>
 	</target>
 </system>

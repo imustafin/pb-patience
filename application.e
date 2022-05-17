@@ -1,8 +1,3 @@
-note
-	description: "pb-patience application root class"
-	date: "$Date$"
-	revision: "$Revision$"
-
 class
 	APPLICATION
 
@@ -24,18 +19,18 @@ feature {NONE} -- Initialization
 	deck: ARRAY [CARD]
 
 	make
-			-- Run application.
 		local
 			main_handler_dispatcher: IV_HANDLER_DISPATCHER
 		do
-				--| Add your code here
-			print ("Hello Eiffel World!%N")
+			create context
 			deck := {CARD}.new_deck
 			shuffle_deck
 			create main_handler_dispatcher.make
 			main_handler_dispatcher.register_callback_1 (agent main)
 			ink_view_main (main_handler_dispatcher.c_dispatcher_1)
 		end
+
+	context: CONTEXT
 
 	shuffle_deck
 		local
@@ -56,23 +51,17 @@ feature {NONE} -- Initialization
 			deck.count = (old deck).count and across (old deck) is d all deck.has (d) end
 		end
 
-	font: detachable IFONT_S_STRUCT_API
-
 	liberation_sans
 		local
 			p: POINTER
 			c_name: C_STRING
-			cc: C_STRING
-			f: like font
+			f: IFONT_S_STRUCT_API
 		do
 			create c_name.make ("LiberationSans")
 			p := open_font (c_name.item, 38, 1)
 			if not p.is_default_pointer then
 				create f.make_by_pointer (p)
-				set_font (f, 0)
-				font := f
-			else
-				draw_text_rect (200, 200, 200, 200, (create {C_STRING}.make ("NULL open font")).item, 0).do_nothing
+				context.font := f
 			end
 		end
 
@@ -119,7 +108,7 @@ feature
 			across
 				1 |..| deck.count is i
 			loop
-				draw_card (deck [i], x * 100, y * 100)
+				draw_card (deck [i], 70 + (x - 1) * ({CARD_COMPONENT}.width + 20), y * 75)
 				x := x + 1
 				if x >= 8 then
 					x := 1
@@ -130,17 +119,10 @@ feature
 
 	draw_card (c: CARD; x, y: INTEGER)
 		local
-			c_str: C_STRING
+			cmp: CARD_COMPONENT
 		do
-			create c_str.make ({UTF_CONVERTER}.string_32_to_utf_8_string_8 (c.out_32))
-			if attached font as f then
-				if c.suit_is_red then
-					set_font(f, 0x00666666)
-				else
-					set_font(f, 0x00000000)
-				end
-			end
-			draw_text_rect (x, y, 100, 100, c_str.item, 0).do_nothing
+			create cmp.make (c, x, y, context)
+			cmp.draw
 		end
 
 end
