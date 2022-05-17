@@ -22,6 +22,7 @@ feature
 			deck := {CARD}.new_deck
 			shuffle_deck (deck)
 			deal_to_foundations (deck)
+			create_homes
 			clear_screen
 			set_orientation (1)
 			set_panel_type (Panel_disabled)
@@ -43,6 +44,9 @@ feature
 			end
 		end
 
+	H_offset: INTEGER = 30
+			-- Horizontal offset between rows
+
 	deal_to_foundations (deck: ARRAY [CARD])
 		local
 			f: INTEGER
@@ -51,13 +55,13 @@ feature
 			across
 				1 |..| 8 is ff
 			loop
-				foundations [ff] := create {FOUNDATION_COMPONENT}.make (120 + (ff - 1) * ({FOUNDATION_COMPONENT}.width + 30), {CARD_COMPONENT}.height + 50, context)
+				foundations [ff] := create {FOUNDATION_COMPONENT}.make (120 + (ff - 1) * ({FOUNDATION_COMPONENT}.width + H_offset), {CARD_COMPONENT}.height + 50, context)
 			end
 			f := 1
 			across
 				deck is card
 			loop
-				foundations [f].extend (create {CARD_COMPONENT}.make (foundations [f], card))
+				foundations [f].extend_deal (create {CARD_COMPONENT}.make (foundations [f], card))
 				f := f + 1
 				if f > foundations.count then
 					f := 1
@@ -68,6 +72,18 @@ feature
 	context: CONTEXT
 
 	foundations: ARRAY [FOUNDATION_COMPONENT]
+
+	homes: ARRAY [HOME_COMPONENT]
+
+	create_homes
+		do
+			create homes.make_filled (create {HOME_COMPONENT}.make (0, 0), 1, 4)
+			across
+				1 |..| 4 is i
+			loop
+				homes [i] := create {HOME_COMPONENT}.make (500 + (i - 1) * ({HOME_COMPONENT}.width + H_offset), 25)
+			end
+		end
 
 	shuffle_deck (deck: ARRAY [CARD])
 		local
@@ -102,24 +118,39 @@ feature
 			end
 		end
 
-	active_foundation: detachable FOUNDATION_COMPONENT
+	active_holder: detachable CARD_HOLDER
 
 	pointerdown (x, y: INTEGER)
 		local
 			handled: BOOLEAN
 		do
 			across
-				foundations is foundation
+				all_holders is holder
 			until
 				handled
 			loop
-				if not foundation.cards.is_empty and then foundation.last_card.has_point (x, y) then
-					foundation.highlight := True
-					foundation.draw
+				if not holder.is_empty and then holder.is_pick_xy (x, y) then
+					holder.highlight := True
+					holder.draw
 					soft_update
-					active_foundation := foundation
+					active_holder := holder
 					handled := true
 				end
+			end
+		end
+
+	all_holders: LINKED_LIST[CARD_HOLDER]
+		do
+			create Result.make
+			across
+				foundations is f
+			loop
+				Result.extend(f)
+			end
+			across
+				homes is h
+			loop
+				Result.extend(h)
 			end
 		end
 
@@ -127,34 +158,31 @@ feature
 		local
 			c: CARD_COMPONENT
 		do
-			if attached active_foundation as f then
-				f.highlight := False
-
-
-				active_foundation := Void
-				if attached foundation_at (x, y) as drop_at then
-					if drop_at /= f then
-						c := f.last_card
-						f.remove
+			if attached active_holder as holder then
+				holder.highlight := False
+				active_holder := Void
+				if attached drop_holder_at (x, y) as drop_at then
+					if drop_at /= holder and drop_at.is_valid_item(holder.item) then
+						c := holder.item
+						holder.remove
 						drop_at.extend (c)
-						clear_screen
-						draw_game
+						drop_at.draw
 					end
 				end
-				f.draw
+				holder.draw
 				soft_update
 			end
 		end
 
-	foundation_at (x, y: INTEGER): detachable FOUNDATION_COMPONENT
+	drop_holder_at (x, y: INTEGER): detachable CARD_HOLDER
 		do
 			across
-				foundations is f
+				all_holders is holder
 			until
 				Result /= Void
 			loop
-				if f.x <= x and x <= f.x + f.width then
-					Result := f
+				if holder.is_drop_xy(x, y) then
+					Result := holder
 				end
 			end
 		end
@@ -169,9 +197,14 @@ feature
 	draw_game
 		do
 			across
-				foundations is f
+				foundations is foundation
 			loop
-				f.draw
+				foundation.draw
+			end
+			across
+				homes is home
+			loop
+				home.draw
 			end
 		end
 

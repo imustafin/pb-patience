@@ -5,6 +5,13 @@ inherit
 
 	INKVIEW_FUNCTIONS_API
 
+	CARD_HOLDER
+		rename
+			is_drop_xy as has_point
+		end
+
+	COLORS
+
 create
 	make
 
@@ -24,27 +31,24 @@ feature
 
 	context: CONTEXT
 
-	highlight: BOOLEAN assign set_highlight
-
-	set_highlight (a_highlight: BOOLEAN)
+	extend (card: CARD_COMPONENT)
 		do
-			highlight := a_highlight
+			extend_deal (card)
 		end
 
-	extend (card: CARD_COMPONENT)
+	extend_deal (card: CARD_COMPONENT)
+			-- Only for initial dealing
 		do
 			cards.extend (card)
 			card.set_xy (x, y + (cards.count - 1) * Offset)
 		end
 
-	last_card: CARD_COMPONENT
+	item: CARD_COMPONENT
 		do
 			Result := cards.last
 		end
 
 	remove
-		require
-			not cards.is_empty
 		do
 			cards.finish
 			cards.remove
@@ -61,29 +65,45 @@ feature
 
 	Height: INTEGER
 		do
-			if cards.is_empty then
-				Result := 0
-			else
-				Result := Offset * (cards.count - 1) + {CARD_COMPONENT}.height
-			end
+			Result := screen_height - y
 		end
 
 	has_point (a_x, a_y: INTEGER): BOOLEAN
 		do
 			Result := x <= a_x and a_x <= (x + width) and y <= a_y and a_y <= (y + height)
-		ensure
+		ensure then
 			Result = across cards is card some card.has_point (a_x, a_y) end
 		end
 
 	draw
 		do
+			fill_area (x, y, width, height, White)
 			across
 				cards is c
 			loop
 				c.draw
 			end
 			if highlight then
-				invert_area (last_card.x, last_card.y, last_card.width, last_card.height)
+				item.invert
+			end
+		end
+
+	is_valid_item (card: CARD_COMPONENT): BOOLEAN
+		do
+			Result := is_empty or else (item.is_other_color (card))
+		end
+
+	is_empty: BOOLEAN
+		do
+			Result := cards.is_empty
+		end
+
+	is_pick_xy (a_x, a_y: INTEGER): BOOLEAN
+		do
+			if is_empty then
+				Result := False
+			else
+				Result := item.has_point (a_x, a_y)
 			end
 		end
 

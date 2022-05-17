@@ -5,6 +5,8 @@ inherit
 
 	INKVIEW_FUNCTIONS_API
 
+	COLORS
+
 create
 	make
 
@@ -33,7 +35,12 @@ feature
 			Result := x <= a_x and a_x <= (x + width) and y <= a_y and a_y <= (y + height)
 		end
 
-feature {FOUNDATION_COMPONENT}
+	is_other_color(a_other: CARD_COMPONENT): BOOLEAN
+		do
+			Result := not card.is_same_color(a_other.card)
+		end
+
+feature {FOUNDATION_COMPONENT, CARD_HOLDER}
 
 	set_xy (a_x, a_y: INTEGER)
 		do
@@ -43,13 +50,7 @@ feature {FOUNDATION_COMPONENT}
 
 feature
 
-	Black: INTEGER = 0x000000
 
-	Dgrey: INTEGER = 0x555555
-
-	Lgrey: INTEGER = 0xaaaaaa
-
-	White: INTEGER = 0xffffff
 
 	Width: INTEGER = 175
 
@@ -77,6 +78,11 @@ feature
 			fill_area (x, y, width, height, White)
 			draw_rect (x, y, width, height, Black)
 			draw_text_rect (x + pad, y + pad, width - pad * 2, height - pad * 2, c_str.item, 0).do_nothing
+		end
+
+	invert
+		do
+			invert_area (x, y, width, height)
 		end
 
 end
