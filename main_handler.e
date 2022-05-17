@@ -24,9 +24,8 @@ feature
 			deal_to_foundations (deck)
 			clear_screen
 			set_orientation (1)
-			set_panel_type (Panel_enabled)
+			set_panel_type (Panel_disabled)
 			liberation_sans
-			draw_panel_no_icon ("", "", 0)
 			draw_game
 			full_update
 		end
@@ -52,13 +51,13 @@ feature
 			across
 				1 |..| 8 is ff
 			loop
-				foundations [ff] := create {FOUNDATION_COMPONENT}.make (70 + (ff - 1) * 245, 100, context)
+				foundations [ff] := create {FOUNDATION_COMPONENT}.make (120 + (ff - 1) * ({FOUNDATION_COMPONENT}.width + 30), {CARD_COMPONENT}.height + 50, context)
 			end
 			f := 1
 			across
 				deck is card
 			loop
-				foundations [f].add_card (card)
+				foundations [f].extend (create {CARD_COMPONENT}.make (foundations [f], card))
 				f := f + 1
 				if f > foundations.count then
 					f := 1
@@ -114,7 +113,7 @@ feature
 			until
 				handled
 			loop
-				if foundation.has_point (x, y) then
+				if not foundation.cards.is_empty and then foundation.last_card.has_point (x, y) then
 					foundation.highlight := True
 					foundation.draw
 					soft_update
@@ -125,25 +124,42 @@ feature
 		end
 
 	pointerup (x, y: INTEGER)
+		local
+			c: CARD_COMPONENT
 		do
 			if attached active_foundation as f then
 				f.highlight := False
+
+
+				active_foundation := Void
+				if attached foundation_at (x, y) as drop_at then
+					if drop_at /= f then
+						c := f.last_card
+						f.remove
+						drop_at.extend (c)
+						clear_screen
+						draw_game
+					end
+				end
 				f.draw
 				soft_update
 			end
 		end
 
-feature
-
-	draw_panel_no_icon (text, title: STRING; percent: INTEGER)
-		local
-			c_text: C_STRING
-			c_title: C_STRING
+	foundation_at (x, y: INTEGER): detachable FOUNDATION_COMPONENT
 		do
-			create c_text.make (text)
-			create c_title.make (title)
-			c_draw_panel (Default_pointer, c_text.item, c_title.item, percent).do_nothing
+			across
+				foundations is f
+			until
+				Result /= Void
+			loop
+				if f.x <= x and x <= f.x + f.width then
+					Result := f
+				end
+			end
 		end
+
+feature
 
 	inner_height: INTEGER
 		do

@@ -18,7 +18,7 @@ feature
 			context := a_context
 		end
 
-	cards: LINKED_LIST [CARD]
+	cards: LINKED_LIST [CARD_COMPONENT]
 
 	x, y: INTEGER
 
@@ -31,12 +31,13 @@ feature
 			highlight := a_highlight
 		end
 
-	add_card (card: CARD)
+	extend (card: CARD_COMPONENT)
 		do
 			cards.extend (card)
+			card.set_xy (x, y + (cards.count - 1) * Offset)
 		end
 
-	top_card: CARD
+	last_card: CARD_COMPONENT
 		do
 			Result := cards.last
 		end
@@ -49,9 +50,14 @@ feature
 			cards.remove
 		end
 
-	Offset: INTEGER = 100
+	Offset: INTEGER = 75
 
-	Width: INTEGER = 225
+	Width: INTEGER
+		once
+			Result := {CARD_COMPONENT}.width
+		ensure
+			class
+		end
 
 	Height: INTEGER
 		do
@@ -62,24 +68,22 @@ feature
 			end
 		end
 
-	has_point(a_x, a_y: INTEGER): BOOLEAN
+	has_point (a_x, a_y: INTEGER): BOOLEAN
 		do
 			Result := x <= a_x and a_x <= (x + width) and y <= a_y and a_y <= (y + height)
+		ensure
+			Result = across cards is card some card.has_point (a_x, a_y) end
 		end
 
 	draw
-		local
-			yy: INTEGER
 		do
-			yy := y
 			across
 				cards is c
 			loop
-				{CARD_COMPONENT}.draw (c, x, yy, context)
-				yy := yy + Offset
+				c.draw
 			end
 			if highlight then
-				invert_area (x, y, width, height)
+				invert_area (last_card.x, last_card.y, last_card.width, last_card.height)
 			end
 		end
 
