@@ -16,156 +16,85 @@ create
 
 feature {NONE} -- Initialization
 
-	foundations: ARRAY [FOUNDATION_COMPONENT]
+	handler: detachable MAIN_HANDLER
 
 	make
 		local
 			main_handler_dispatcher: IV_HANDLER_DISPATCHER
-			deck: ARRAY [CARD]
 		do
-			create context
-			deck := {CARD}.new_deck
-			shuffle_deck (deck)
-			deal_to_foundations (deck)
 			create main_handler_dispatcher.make
-			main_handler_dispatcher.register_callback_1 (agent main)
+			main_handler_dispatcher.register_callback_1 (agent handle_application)
 			ink_view_main (main_handler_dispatcher.c_dispatcher_1)
 		end
 
-	deal_to_foundations (deck: ARRAY [CARD])
+	can_show_exceptions: BOOLEAN
+
+	show_exception_dialog
 		local
-			f: INTEGER
+			c1, body, exit, next, prev: C_STRING
+			erout: STRING
+			a, b: INTEGER
+			res: INTEGER
+			n: INTEGER
 		do
-			create foundations.make_filled (create {FOUNDATION_COMPONENT}.make (0, 0, context), 1, 8)
-			across
-				1 |..| 8 is ff
-			loop
-				foundations [ff] := create {FOUNDATION_COMPONENT}.make (70 + (ff - 1) * 245, 100, context)
+			n := 300
+			if attached {EXCEPTIONS}.meaning ({EXCEPTIONS}.exception) as meaning then
+				create c1.make (meaning)
+			else
+				create c1.make ("NO MEANING exception " + {EXCEPTIONS}.exception.out)
 			end
-			f := 1
+			if attached {EXCEPTION_MANAGER}.last_exception as e then
+				erout := e.out
+			else
+				erout := "No exception (???)"
+			end
 			across
-				deck is card
+				1 |..| 20 as i
 			loop
-				foundations [f].add_card (card)
-				f := f + 1
-				if f > foundations.count then
-					f := 1
+				erout.replace_substring_all ("  ", " ")
+			end
+			a := 1
+			b := erout.count.min (n)
+			create exit.make ("exit")
+			create next.make ("next")
+			create prev.make ("prev")
+			from
+				res := -10
+			until
+				res = 1
+			loop
+				create body.make (erout.substring (a, b))
+				res := dialog_synchro (0, c1.item, body.item, exit.item, prev.item, next.item)
+				if res = 3 then
+					b := (b + n).min (erout.count)
+					a := (b - n).max (1)
+				elseif res = 2 then
+					a := (a - n).max (1)
+					b := (a + n).min (erout.count)
 				end
 			end
 		end
 
-	context: CONTEXT
-
-	shuffle_deck (deck: ARRAY [CARD])
-		local
-			j: INTEGER
-			r: RANDOM
-			t: CARD
-		do
-			create r.make
-			across
-				1 |..| deck.count is c
-			loop
-				j := r.item \\ c + 1
-				t := deck [c]
-				deck [c] := deck [j]
-				deck [j] := t
-			end
-		ensure
-			deck.count = (old deck).count and across (old deck) is d all deck.has (d) end
-		end
-
-	liberation_sans
-		local
-			p: POINTER
-			c_name: C_STRING
-			f: IFONT_S_STRUCT_API
-		do
-			create c_name.make ("LiberationSans")
-			p := open_font (c_name.item, 38, 1)
-			if not p.is_default_pointer then
-				create f.make_by_pointer (p)
-				context.font := f
-			end
-		end
-
-	main (type, par1, par2: INTEGER): INTEGER
+	handle_application (type, par1, par2: INTEGER): INTEGER
+		require
+			no_handler_before_init: type = Evt_init implies handler = Void
+			handler_after_init: type /= Evt_init implies handler /= Void
 		do
 			inspect type
 			when Evt_init then
-				clear_screen
-				set_orientation (1)
-				set_panel_type (Panel_enabled)
-				liberation_sans
-				draw_panel_no_icon ("", "", 0)
-				draw_game
-				full_update
-			when Evt_keypress then
-				close_app
-			when Evt_pointerdown then
-				pointerdown (par1, par2)
-			when Evt_pointerup then
-				pointerup (par1, par2)
+				can_show_exceptions := True
+				create handler.init
+				Result := 1
 			else
-			end
-		end
-
-feature
-
-	active_foundation: detachable FOUNDATION_COMPONENT
-
-	pointerdown (x, y: INTEGER)
-		local
-			handled: BOOLEAN
-		do
-			across
-				foundations is foundation
-			until
-				handled
-			loop
-				if foundation.has_point(x, y) then
-					foundation.highlight := True
-					foundation.draw
-					soft_update
-					active_foundation := foundation
-					handled := true
+				check attached handler as h then
+					Result := h.handle (type, par1, par2)
 				end
 			end
-
-		end
-
-	pointerup (x, y: INTEGER)
-		do
-			if attached active_foundation as f then
-				f.highlight := False
-				f.draw
-				soft_update
-			end
-		end
-
-feature
-
-	draw_panel_no_icon (text, title: STRING; percent: INTEGER)
-		local
-			c_text: C_STRING
-			c_title: C_STRING
-		do
-			create c_text.make (text)
-			create c_title.make (title)
-			c_draw_panel (Default_pointer, c_text.item, c_title.item, percent).do_nothing
-		end
-
-	inner_height: INTEGER
-		do
-			Result := screen_height - panel_height
-		end
-
-	draw_game
-		do
-			across
-				foundations is f
-			loop
-				f.draw
+		ensure
+			handler_after_init: type = Evt_init implies handler /= Void
+		rescue
+			if can_show_exceptions then
+				show_exception_dialog
 			end
 		end
 

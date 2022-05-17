@@ -4,6 +4,13 @@
 expanded class
 	CARD
 
+inherit
+
+	ANY
+		redefine
+			default_create
+		end
+
 create
 	default_create, make
 
@@ -21,6 +28,11 @@ feature {CARD} -- Definitions
 			Result := <<"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K">>
 		ensure
 			class
+		end
+
+	default_create
+		do
+			make (1, 1)
 		end
 
 	make (a_suit, a_rank: INTEGER)
@@ -48,6 +60,7 @@ feature
 			i: INTEGER
 		do
 			create Result.make_filled (create {CARD}.make (1, 1), 1, Suits.count * Ranks.count)
+			i := 1
 			across
 				1 |..| Suits.count is s
 			loop
@@ -66,7 +79,7 @@ feature
 
 	suit_is_red: BOOLEAN
 		do
-			Result := Suits[suit].is_red
+			Result := Suits [suit].is_red
 		end
 
 	is_same_color (a_other: CARD): BOOLEAN
