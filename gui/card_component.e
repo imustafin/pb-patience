@@ -28,7 +28,7 @@ feature
 			create c_str.make ({UTF_CONVERTER}.string_32_to_utf_8_string_8 (card.out_32))
 			if attached context.font as f then
 				if card.suit_is_red then
-					set_font (f, Lgrey)
+					set_font (f, Dgrey)
 				else
 					set_font (f, Black)
 				end

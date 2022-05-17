@@ -89,7 +89,7 @@ feature {NONE} -- Initialization
 			end
 		end
 
-	main (type, x, y: INTEGER): INTEGER
+	main (type, par1, par2: INTEGER): INTEGER
 		do
 			inspect type
 			when Evt_init then
@@ -102,7 +102,44 @@ feature {NONE} -- Initialization
 				full_update
 			when Evt_keypress then
 				close_app
+			when Evt_pointerdown then
+				pointerdown (par1, par2)
+			when Evt_pointerup then
+				pointerup (par1, par2)
 			else
+			end
+		end
+
+feature
+
+	active_foundation: detachable FOUNDATION_COMPONENT
+
+	pointerdown (x, y: INTEGER)
+		local
+			handled: BOOLEAN
+		do
+			across
+				foundations is foundation
+			until
+				handled
+			loop
+				if foundation.has_point(x, y) then
+					foundation.highlight := True
+					foundation.draw
+					soft_update
+					active_foundation := foundation
+					handled := true
+				end
+			end
+
+		end
+
+	pointerup (x, y: INTEGER)
+		do
+			if attached active_foundation as f then
+				f.highlight := False
+				f.draw
+				soft_update
 			end
 		end
 

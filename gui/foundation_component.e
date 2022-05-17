@@ -24,7 +24,14 @@ feature
 
 	context: CONTEXT
 
-	add_card(card: CARD)
+	highlight: BOOLEAN assign set_highlight
+
+	set_highlight (a_highlight: BOOLEAN)
+		do
+			highlight := a_highlight
+		end
+
+	add_card (card: CARD)
 		do
 			cards.extend (card)
 		end
@@ -42,6 +49,24 @@ feature
 			cards.remove
 		end
 
+	Offset: INTEGER = 100
+
+	Width: INTEGER = 225
+
+	Height: INTEGER
+		do
+			if cards.is_empty then
+				Result := 0
+			else
+				Result := Offset * (cards.count - 1) + {CARD_COMPONENT}.height
+			end
+		end
+
+	has_point(a_x, a_y: INTEGER): BOOLEAN
+		do
+			Result := x <= a_x and a_x <= (x + width) and y <= a_y and a_y <= (y + height)
+		end
+
 	draw
 		local
 			yy: INTEGER
@@ -51,9 +76,11 @@ feature
 				cards is c
 			loop
 				{CARD_COMPONENT}.draw (c, x, yy, context)
-				yy := yy + 100
+				yy := yy + Offset
 			end
-
+			if highlight then
+				invert_area (x, y, width, height)
+			end
 		end
 
 end
