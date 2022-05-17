@@ -16,23 +16,47 @@ create
 
 feature {NONE} -- Initialization
 
-	deck: ARRAY [CARD]
+	foundations: ARRAY [FOUNDATION_COMPONENT]
 
 	make
 		local
 			main_handler_dispatcher: IV_HANDLER_DISPATCHER
+			deck: ARRAY [CARD]
 		do
 			create context
 			deck := {CARD}.new_deck
-			shuffle_deck
+			shuffle_deck (deck)
+			deal_to_foundations (deck)
 			create main_handler_dispatcher.make
 			main_handler_dispatcher.register_callback_1 (agent main)
 			ink_view_main (main_handler_dispatcher.c_dispatcher_1)
 		end
 
+	deal_to_foundations (deck: ARRAY [CARD])
+		local
+			f: INTEGER
+		do
+			create foundations.make_filled (create {FOUNDATION_COMPONENT}.make (0, 0, context), 1, 8)
+			across
+				1 |..| 8 is ff
+			loop
+				foundations [ff] := create {FOUNDATION_COMPONENT}.make (70 + (ff - 1) * 245, 100, context)
+			end
+			f := 1
+			across
+				deck is card
+			loop
+				foundations [f].add_card (card)
+				f := f + 1
+				if f > foundations.count then
+					f := 1
+				end
+			end
+		end
+
 	context: CONTEXT
 
-	shuffle_deck
+	shuffle_deck (deck: ARRAY [CARD])
 		local
 			j: INTEGER
 			r: RANDOM
@@ -74,7 +98,7 @@ feature {NONE} -- Initialization
 				set_panel_type (Panel_enabled)
 				liberation_sans
 				draw_panel_no_icon ("", "", 0)
-				draw_deck
+				draw_game
 				full_update
 			when Evt_keypress then
 				close_app
@@ -99,30 +123,13 @@ feature
 			Result := screen_height - panel_height
 		end
 
-	draw_deck
-		local
-			x, y: INTEGER
+	draw_game
 		do
-			x := 1
-			y := 1
 			across
-				1 |..| deck.count is i
+				foundations is f
 			loop
-				draw_card (deck [i], 70 + (x - 1) * ({CARD_COMPONENT}.width + 20), y * 75)
-				x := x + 1
-				if x >= 8 then
-					x := 1
-					y := y + 1
-				end
+				f.draw
 			end
-		end
-
-	draw_card (c: CARD; x, y: INTEGER)
-		local
-			cmp: CARD_COMPONENT
-		do
-			create cmp.make (c, x, y, context)
-			cmp.draw
 		end
 
 end

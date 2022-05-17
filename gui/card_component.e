@@ -3,12 +3,7 @@ class
 
 inherit
 
-	COMPONENT
-
 	INKVIEW_FUNCTIONS_API
-
-create
-	make
 
 feature
 
@@ -24,21 +19,7 @@ feature
 
 	Height: INTEGER = 350
 
-	make (a_card: CARD; a_x, a_y: INTEGER; a_context: CONTEXT)
-		do
-			context := a_context
-			card := a_card
-			x := a_x
-			y := a_y
-		end
-
-	card: CARD
-
-	x, y: INTEGER
-
-	context: CONTEXT
-
-	draw
+	draw (card: CARD; x, y: INTEGER; context: CONTEXT)
 		local
 			c_str: C_STRING
 			pad: INTEGER
@@ -53,8 +34,10 @@ feature
 				end
 			end
 			fill_area (x, y, width, height, White)
-			draw_rect(x, y, width, height, Black)
+			draw_rect (x, y, width, height, Black)
 			draw_text_rect (x + pad, y + pad, width - pad * 2, height - pad * 2, c_str.item, 0).do_nothing
+		ensure
+			class
 		end
 
 end

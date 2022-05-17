@@ -1,4 +1,0 @@
-deferred class
-	COMPONENT
-
-end
