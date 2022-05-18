@@ -106,8 +106,8 @@ feature
 	out_32: STRING_32
 		do
 			create Result.make_empty
-			Result.append_character (Suits [suit].symbol)
 			Result.append_string (Ranks [rank])
+			Result.append_character (Suits [suit].symbol)
 		end
 
 invariant
