@@ -21,8 +21,9 @@ feature
 			create context
 			deck := {CARD}.new_deck
 			shuffle_deck (deck)
-			deal_to_foundations (deck)
-			create_homes
+			deal_to_tableau (deck)
+			create_free_cells
+			create_home_cells
 			clear_screen
 			set_orientation (1)
 			set_panel_type (Panel_disabled)
@@ -44,26 +45,23 @@ feature
 			end
 		end
 
-	H_offset: INTEGER = 30
-			-- Horizontal offset between rows
-
-	deal_to_foundations (deck: ARRAY [CARD])
+	deal_to_tableau (deck: ARRAY [CARD])
 		local
 			f: INTEGER
 		do
-			create foundations.make_filled (create {FOUNDATION_COMPONENT}.make (0, 0, context), 1, 8)
+			create tableau.make_filled (create {COLUMN_COMPONENT}.make (0, 0, context), 1, 8)
 			across
 				1 |..| 8 is ff
 			loop
-				foundations [ff] := create {FOUNDATION_COMPONENT}.make (120 + (ff - 1) * ({FOUNDATION_COMPONENT}.width + H_offset), {CARD_COMPONENT}.height + 50, context)
+				tableau [ff] := create {COLUMN_COMPONENT}.make (col_x (ff), {CARD_COMPONENT}.height + 50, context)
 			end
 			f := 1
 			across
 				deck is card
 			loop
-				foundations [f].extend_deal (create {CARD_COMPONENT}.make (foundations [f], card))
+				tableau [f].extend_deal (create {CARD_COMPONENT}.make (tableau [f], card))
 				f := f + 1
-				if f > foundations.count then
+				if f > tableau.count then
 					f := 1
 				end
 			end
@@ -71,18 +69,39 @@ feature
 
 	context: CONTEXT
 
-	foundations: ARRAY [FOUNDATION_COMPONENT]
+	tableau: ARRAY [COLUMN_COMPONENT]
 
-	homes: ARRAY [HOME_COMPONENT]
+	free_cells: ARRAY [FREE_CELL_COMPONENT]
 
-	create_homes
+	home_cells: ARRAY [HOME_CELL_COMPONENT]
+
+	create_free_cells
 		do
-			create homes.make_filled (create {HOME_COMPONENT}.make (0, 0), 1, 4)
+			create free_cells.make_filled (create {FREE_CELL_COMPONENT}.make (0, 0), 1, 4)
 			across
 				1 |..| 4 is i
 			loop
-				homes [i] := create {HOME_COMPONENT}.make (500 + (i - 1) * ({HOME_COMPONENT}.width + H_offset), 25)
+				free_cells [i] := create {FREE_CELL_COMPONENT}.make (col_x (i + 4) + 25, 25)
 			end
+		end
+
+	create_home_cells
+		do
+			create home_cells.make_filled (create {HOME_CELL_COMPONENT}.make (0, 0), 1, 4)
+			across
+				1 |..| 4 is i
+			loop
+				home_cells [i] := create {HOME_CELL_COMPONENT}.make (col_x (i) - 25, 25)
+			end
+		end
+
+	since_epoch: INTEGER
+		local
+			epoch, now: DATE_TIME
+		do
+			create epoch.make_from_epoch (0)
+			create now.make_now
+			Result := (now.definite_duration (epoch)).seconds_count.as_integer_32
 		end
 
 	shuffle_deck (deck: ARRAY [CARD])
@@ -91,10 +110,11 @@ feature
 			r: RANDOM
 			t: CARD
 		do
-			create r.make
+			create r.set_seed (since_epoch)
 			across
 				1 |..| deck.count is c
 			loop
+				r.forth
 				j := r.item \\ c + 1
 				t := deck [c]
 				deck [c] := deck [j]
@@ -139,18 +159,23 @@ feature
 			end
 		end
 
-	all_holders: LINKED_LIST[CARD_HOLDER]
+	all_holders: LINKED_LIST [CARD_HOLDER]
 		do
 			create Result.make
 			across
-				foundations is f
+				tableau is c
 			loop
-				Result.extend(f)
+				Result.extend (c)
 			end
 			across
-				homes is h
+				free_cells is f
 			loop
-				Result.extend(h)
+				Result.extend (f)
+			end
+			across
+				home_cells is h
+			loop
+				Result.extend (h)
 			end
 		end
 
@@ -162,7 +187,7 @@ feature
 				holder.highlight := False
 				active_holder := Void
 				if attached drop_holder_at (x, y) as drop_at then
-					if drop_at /= holder and drop_at.is_valid_item(holder.item) then
+					if drop_at /= holder and drop_at.is_valid_item (holder.item) then
 						c := holder.item
 						holder.remove
 						drop_at.extend (c)
@@ -181,7 +206,7 @@ feature
 			until
 				Result /= Void
 			loop
-				if holder.is_drop_xy(x, y) then
+				if holder.is_drop_xy (x, y) then
 					Result := holder
 				end
 			end
@@ -197,15 +222,30 @@ feature
 	draw_game
 		do
 			across
-				foundations is foundation
+				tableau is foundation
 			loop
 				foundation.draw
 			end
 			across
-				homes is home
+				free_cells is free_cell
 			loop
-				home.draw
+				free_cell.draw
 			end
+			across
+				home_cells is home_cell
+			loop
+				home_cell.draw
+			end
+		end
+
+feature
+
+	col_x (col: INTEGER): INTEGER
+			-- `x` for the `col`-th column on screen
+		require
+			col >= 1
+		do
+			Result := 130 + ((col - 1) * (30 + {CARD_COMPONENT}.width))
 		end
 
 end

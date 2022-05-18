@@ -1,5 +1,5 @@
 class
-	FOUNDATION_COMPONENT
+	COLUMN_COMPONENT
 
 inherit
 
@@ -54,7 +54,7 @@ feature
 			cards.remove
 		end
 
-	Offset: INTEGER = 75
+	Offset: INTEGER = 60
 
 	Width: INTEGER
 		once
@@ -71,8 +71,6 @@ feature
 	has_point (a_x, a_y: INTEGER): BOOLEAN
 		do
 			Result := x <= a_x and a_x <= (x + width) and y <= a_y and a_y <= (y + height)
-		ensure then
-			Result = across cards is card some card.has_point (a_x, a_y) end
 		end
 
 	draw
@@ -81,16 +79,16 @@ feature
 			across
 				cards is c
 			loop
-				c.draw
+				c.draw(False)
 			end
-			if highlight then
-				item.invert
+			if highlight and not is_empty then
+				item.draw (True)
 			end
 		end
 
 	is_valid_item (card: CARD_COMPONENT): BOOLEAN
 		do
-			Result := is_empty or else (item.is_other_color (card))
+			Result := is_empty or else (item.is_other_color (card) and item.card.is_next_rank_after (card.card))
 		end
 
 	is_empty: BOOLEAN

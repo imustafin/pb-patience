@@ -2,7 +2,7 @@ note
 	description: "Component for a HomeCell"
 
 class
-	HOME_COMPONENT
+	FREE_CELL_COMPONENT
 
 inherit
 
@@ -83,10 +83,7 @@ feature
 				draw_rect (x, y, Width, Height, Black)
 			else
 				check attached item as i then
-					item.draw
-				end
-				if highlight then
-					item.invert
+					item.draw(highlight)
 				end
 			end
 		end

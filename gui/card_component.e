@@ -12,7 +12,7 @@ create
 
 feature
 
-	make (a_owner: FOUNDATION_COMPONENT; a_card: CARD)
+	make (a_owner: COLUMN_COMPONENT; a_card: CARD)
 		do
 			owner := a_owner
 			card := a_card
@@ -26,7 +26,7 @@ feature
 
 	card: CARD
 
-	owner: FOUNDATION_COMPONENT
+	owner: COLUMN_COMPONENT
 
 feature
 
@@ -35,12 +35,12 @@ feature
 			Result := x <= a_x and a_x <= (x + width) and y <= a_y and a_y <= (y + height)
 		end
 
-	is_other_color(a_other: CARD_COMPONENT): BOOLEAN
+	is_other_color (a_other: CARD_COMPONENT): BOOLEAN
 		do
-			Result := not card.is_same_color(a_other.card)
+			Result := not card.is_same_color (a_other.card)
 		end
 
-feature {FOUNDATION_COMPONENT, CARD_HOLDER}
+feature {COLUMN_COMPONENT, CARD_HOLDER}
 
 	set_xy (a_x, a_y: INTEGER)
 		do
@@ -49,8 +49,6 @@ feature {FOUNDATION_COMPONENT, CARD_HOLDER}
 		end
 
 feature
-
-
 
 	Width: INTEGER = 175
 
@@ -61,21 +59,29 @@ feature
 			class
 		end
 
-	draw
+	draw (inverted: BOOLEAN)
 		local
 			c_str: C_STRING
 			pad: INTEGER
 		do
-			pad := 10
+			pad := 5
 			create c_str.make ({UTF_CONVERTER}.string_32_to_utf_8_string_8 (card.out_32))
 			if attached owner.context.font as f then
 				if card.suit_is_red then
 					set_font (f, Dgrey)
 				else
-					set_font (f, Black)
+					if not inverted then
+						set_font (f, Black)
+					else
+						set_font (f, White)
+					end
 				end
 			end
-			fill_area (x, y, width, height, White)
+			if not inverted then
+				fill_area (x, y, width, height, White)
+			else
+				fill_area (x, y, width, height, Black)
+			end
 			draw_rect (x, y, width, height, Black)
 			draw_text_rect (x + pad, y + pad, width - pad * 2, height - pad * 2, c_str.item, 0).do_nothing
 		end

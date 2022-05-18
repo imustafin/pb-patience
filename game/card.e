@@ -87,6 +87,22 @@ feature
 			Result := Suits [suit].is_red = Suits [a_other.suit].is_red
 		end
 
+	is_next_rank_after (a_other: CARD): BOOLEAN
+			-- Is Current's rank greater by 1 than `a_other`'s
+		do
+			Result := (a_other.rank + 1) = rank
+		end
+
+	is_ace: BOOLEAN
+		do
+			Result := rank = 1
+		end
+
+	is_same_suit (a_other: CARD): BOOLEAN
+		do
+			Result := suit = a_other.suit
+		end
+
 	out_32: STRING_32
 		do
 			create Result.make_empty
