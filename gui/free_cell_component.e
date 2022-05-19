@@ -19,7 +19,7 @@ inherit
 create
 	make
 
-feature
+feature {NONE}
 
 	make (a_x, a_y: INTEGER)
 		do
@@ -79,11 +79,11 @@ feature
 	draw
 		do
 			if is_empty then
-				fill_area(x, y, Width, Height, White)
+				fill_area (x, y, Width, Height, White)
 				draw_rect (x, y, Width, Height, Black)
 			else
 				check attached item as i then
-					item.draw(highlight)
+					item.draw (highlight)
 				end
 			end
 		end

@@ -12,14 +12,14 @@ inherit
 create
 	init
 
-feature
+feature {NONE}
 
 	init
 		local
-			deck: ARRAY [CARD]
+			deck: ARRAY [CARD_COMPONENT]
 		do
-			create context
-			deck := {CARD}.new_deck
+			create all_holders.make
+			deck := {CARD_COMPONENT}.new_deck
 			shuffle_deck (deck)
 			deal_to_tableau (deck)
 			create_free_cells
@@ -27,10 +27,11 @@ feature
 			clear_screen
 			set_orientation (1)
 			set_panel_type (Panel_disabled)
-			liberation_sans
 			draw_game
 			full_update
 		end
+
+feature
 
 	handle (type, par1, par2: INTEGER): INTEGER
 		do
@@ -45,53 +46,47 @@ feature
 			end
 		end
 
-	deal_to_tableau (deck: ARRAY [CARD])
+	deal_to_tableau (deck: ARRAY [CARD_COMPONENT])
 		local
-			f: INTEGER
+			column: COLUMN_COMPONENT
+			d: INTEGER
+			col_len: INTEGER
 		do
-			create tableau.make_filled (create {COLUMN_COMPONENT}.make (0, 0, context), 1, 8)
+			d := 1
 			across
-				1 |..| 8 is ff
+				1 |..| 8 is i
 			loop
-				tableau [ff] := create {COLUMN_COMPONENT}.make (col_x (ff), {CARD_COMPONENT}.height + 50, context)
-			end
-			f := 1
-			across
-				deck is card
-			loop
-				tableau [f].extend_deal (create {CARD_COMPONENT}.make (tableau [f], card))
-				f := f + 1
-				if f > tableau.count then
-					f := 1
+				create column.make (col_x (i), {CARD_COMPONENT}.height + 50)
+				all_holders.extend (column)
+				if i <= 4 then
+					col_len := 7
+				else
+					col_len := 6
+				end
+				across
+					1 |..| col_len is j
+				loop
+					column.extend_deal (deck [d])
+					d := d + 1
 				end
 			end
 		end
 
-	context: CONTEXT
-
-	tableau: ARRAY [COLUMN_COMPONENT]
-
-	free_cells: ARRAY [FREE_CELL_COMPONENT]
-
-	home_cells: ARRAY [HOME_CELL_COMPONENT]
-
 	create_free_cells
 		do
-			create free_cells.make_filled (create {FREE_CELL_COMPONENT}.make (0, 0), 1, 4)
 			across
 				1 |..| 4 is i
 			loop
-				free_cells [i] := create {FREE_CELL_COMPONENT}.make (col_x (i + 4) + 25, 25)
+				all_holders.extend (create {FREE_CELL_COMPONENT}.make (col_x (i + 4) + 25, 25))
 			end
 		end
 
 	create_home_cells
 		do
-			create home_cells.make_filled (create {HOME_CELL_COMPONENT}.make (0, 0), 1, 4)
 			across
 				1 |..| 4 is i
 			loop
-				home_cells [i] := create {HOME_CELL_COMPONENT}.make (col_x (i) - 25, 25)
+				all_holders.extend (create {HOME_CELL_COMPONENT}.make (col_x (i) - 25, 25))
 			end
 		end
 
@@ -104,11 +99,11 @@ feature
 			Result := (now.definite_duration (epoch)).seconds_count.as_integer_32
 		end
 
-	shuffle_deck (deck: ARRAY [CARD])
+	shuffle_deck (deck: ARRAY [CARD_COMPONENT])
 		local
 			j: INTEGER
 			r: RANDOM
-			t: CARD
+			t: CARD_COMPONENT
 		do
 			create r.set_seed (since_epoch)
 			across
@@ -124,18 +119,16 @@ feature
 			deck.count = (old deck).count and across (old deck) is d all deck.has (d) end
 		end
 
-	liberation_sans
+	card_font: detachable IFONT_S_STRUCT_API
 		local
 			p: POINTER
-			c_name: C_STRING
-			f: IFONT_S_STRUCT_API
-		do
-			create c_name.make ("LiberationSans")
-			p := open_font (c_name.item, 38, 1)
+		once
+			p := open_font ((create {C_STRING}.make ("LiberationSans")).item, 42, 1)
 			if not p.is_default_pointer then
-				create f.make_by_pointer (p)
-				context.font := f
+				create Result.make_by_pointer (p)
 			end
+		ensure
+			class
 		end
 
 	active_holder: detachable CARD_HOLDER
@@ -160,24 +153,6 @@ feature
 		end
 
 	all_holders: LINKED_LIST [CARD_HOLDER]
-		do
-			create Result.make
-			across
-				tableau is c
-			loop
-				Result.extend (c)
-			end
-			across
-				free_cells is f
-			loop
-				Result.extend (f)
-			end
-			across
-				home_cells is h
-			loop
-				Result.extend (h)
-			end
-		end
 
 	pointerup (x, y: INTEGER)
 		local
@@ -222,19 +197,9 @@ feature
 	draw_game
 		do
 			across
-				tableau is foundation
+				all_holders is holder
 			loop
-				foundation.draw
-			end
-			across
-				free_cells is free_cell
-			loop
-				free_cell.draw
-			end
-			across
-				home_cells is home_cell
-			loop
-				home_cell.draw
+				holder.draw
 			end
 		end
 

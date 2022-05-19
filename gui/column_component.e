@@ -15,21 +15,20 @@ inherit
 create
 	make
 
-feature
+feature {NONE}
 
-	make (a_x, a_y: INTEGER; a_context: CONTEXT)
+	make (a_x, a_y: INTEGER)
 		do
 			create cards.make
 			x := a_x
 			y := a_y
-			context := a_context
 		end
+
+feature
 
 	cards: LINKED_LIST [CARD_COMPONENT]
 
 	x, y: INTEGER
-
-	context: CONTEXT
 
 	extend (card: CARD_COMPONENT)
 		do
@@ -79,7 +78,7 @@ feature
 			across
 				cards is c
 			loop
-				c.draw(False)
+				c.draw (False)
 			end
 			if highlight and not is_empty then
 				item.draw (True)
@@ -88,7 +87,7 @@ feature
 
 	is_valid_item (card: CARD_COMPONENT): BOOLEAN
 		do
-			Result := is_empty or else (item.is_other_color (card) and item.card.is_next_rank_after (card.card))
+			Result := is_empty or else (item.is_other_color (card) and item.is_next_rank_after (card))
 		end
 
 	is_empty: BOOLEAN

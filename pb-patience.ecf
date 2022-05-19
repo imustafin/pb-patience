@@ -15,13 +15,14 @@
 		<setting name="executable_name" value="pb-patience.app"/>
 		<setting name="dead_code_removal" value="feature"/>
 		<capability>
+			<catcall_detection support="none"/>
 			<concurrency support="none"/>
+			<void_safety support="all"/>
 		</capability>
 		<library name="base" location="$ISE_LIBRARY\library\base\base.ecf"/>
 		<library name="time" location="$ISE_LIBRARY\library\time\time.ecf"/>
 		<library name="wrap_inkview" location="..\wrap_inkview\wrap_inkview.ecf"/>
 		<cluster name="pb-patience" location=".\">
-			<cluster name="game" location=".\game\"/>
 			<cluster name="gui" location=".\gui\"/>
 		</cluster>
 	</target>

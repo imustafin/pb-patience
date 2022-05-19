@@ -12,7 +12,7 @@ inherit
 create
 	make
 
-feature
+feature {NONE}
 
 	make (a_x, a_y: INTEGER)
 		do
@@ -43,9 +43,9 @@ feature
 	is_valid_item (card: CARD_COMPONENT): BOOLEAN
 		do
 			if is_empty then
-				Result := card.card.is_ace
+				Result := card.is_ace
 			else
-				Result := card.card.is_next_rank_after (item.card) and card.card.same_type (item.card)
+				Result := card.is_next_rank_after (item) and card.same_type (item)
 			end
 		end
 
@@ -81,7 +81,7 @@ feature
 				draw_rect (x, y, Width, Height, Black)
 			else
 				check attached item as i then
-					item.draw(highlight)
+					item.draw (highlight)
 				end
 			end
 		end
@@ -89,7 +89,7 @@ feature
 	is_pick_xy (a_x, a_y: INTEGER): BOOLEAN
 		do
 		ensure then
-			cant_take_from_home: Result = False
+			cant_take_from_home: not Result
 		end
 
 	is_drop_xy (a_x, a_y: INTEGER): BOOLEAN

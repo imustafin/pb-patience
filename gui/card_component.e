@@ -1,4 +1,4 @@
-class
+﻿class
 	CARD_COMPONENT
 
 inherit
@@ -10,12 +10,18 @@ inherit
 create
 	make
 
-feature
+feature {NONE}
 
-	make (a_owner: COLUMN_COMPONENT; a_card: CARD)
+	make (a_suit, a_rank: INTEGER)
+		require
+			existing_suit: Suits.valid_index (a_suit)
+			existing_rank: Ranks.valid_index (a_rank)
 		do
-			owner := a_owner
-			card := a_card
+			suit := a_suit
+			rank := a_rank
+		ensure
+			suit_set: suit = a_suit
+			rank_set: rank = a_rank
 		end
 
 feature
@@ -24,9 +30,29 @@ feature
 
 	y: INTEGER
 
-	card: CARD
+feature {CARD_COMPONENT}
 
-	owner: COLUMN_COMPONENT
+	suit: INTEGER
+			-- Index in `Suits`
+
+	rank: INTEGER
+			-- Index in `Ranks`
+
+feature
+
+	Suits: ARRAY [TUPLE [symbol: CHARACTER_32; is_red: BOOLEAN]]
+		once
+			Result := <<['♥', True], ['♦', True], ['♣', False], ['♠', False]>>
+		ensure
+			class
+		end
+
+	Ranks: ARRAY [STRING]
+		once
+			Result := <<"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K">>
+		ensure
+			class
+		end
 
 feature
 
@@ -37,7 +63,7 @@ feature
 
 	is_other_color (a_other: CARD_COMPONENT): BOOLEAN
 		do
-			Result := not card.is_same_color (a_other.card)
+			Result := Suits [suit].is_red /= Suits [a_other.suit].is_red
 		end
 
 feature {COLUMN_COMPONENT, CARD_HOLDER}
@@ -65,9 +91,9 @@ feature
 			pad: INTEGER
 		do
 			pad := 5
-			create c_str.make ({UTF_CONVERTER}.string_32_to_utf_8_string_8 (card.out_32))
-			if attached owner.context.font as f then
-				if card.suit_is_red then
+			create c_str.make ({UTF_CONVERTER}.string_32_to_utf_8_string_8 (card_title))
+			if attached {MAIN_HANDLER}.card_font as f then
+				if Suits [suit].is_red then
 					set_font (f, Dgrey)
 				else
 					if not inverted then
@@ -90,5 +116,57 @@ feature
 		do
 			invert_area (x, y, width, height)
 		end
+
+	card_title: STRING_32
+		do
+			create Result.make_empty
+			Result.append_string (Ranks [rank])
+			Result.append_character (Suits [suit].symbol)
+		end
+
+	is_same_color (a_other: CARD_COMPONENT): BOOLEAN
+		do
+			Result := Suits [suit].is_red = Suits [a_other.suit].is_red
+		end
+
+	is_next_rank_after (a_other: CARD_COMPONENT): BOOLEAN
+			-- Is Current's rank greater by 1 than `a_other`'s
+		do
+			Result := (a_other.rank + 1) = rank
+		end
+
+	new_deck: ARRAY [CARD_COMPONENT]
+		local
+			i: INTEGER
+		do
+			create Result.make_filled (create {CARD_COMPONENT}.make (1, 1), 1, Suits.count * Ranks.count)
+			i := 1
+			across
+				1 |..| Suits.count is s
+			loop
+				across
+					1 |..| Ranks.count is r
+				loop
+					Result [i] := create {CARD_COMPONENT}.make (s, r)
+					i := i + 1
+				end
+			end
+		ensure
+			class
+		end
+
+	is_ace: BOOLEAN
+		do
+			Result := rank = 1
+		end
+
+	is_same_suit (a_other: CARD_COMPONENT): BOOLEAN
+		do
+			Result := suit = a_other.suit
+		end
+
+invariant
+	existing_suit: Suits.valid_index (suit)
+	existing_rank: Ranks.valid_index (rank)
 
 end
