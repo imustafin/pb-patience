@@ -4,6 +4,10 @@ note
 deferred class
 	CARD_HOLDER
 
+inherit
+
+	COMPONENT
+
 feature
 
 	is_valid_item (card: CARD_COMPONENT): BOOLEAN

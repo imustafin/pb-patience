@@ -12,6 +12,8 @@ inherit
 
 	COLORS
 
+	COMPONENT
+
 create
 	make
 

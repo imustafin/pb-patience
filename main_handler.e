@@ -57,7 +57,7 @@ feature
 				1 |..| 8 is i
 			loop
 				create column.make (col_x (i), {CARD_COMPONENT}.height + 50)
-				all_holders.extend (column)
+				add_holder (column)
 				if i <= 4 then
 					col_len := 7
 				else
@@ -77,8 +77,15 @@ feature
 			across
 				1 |..| 4 is i
 			loop
-				all_holders.extend (create {FREE_CELL_COMPONENT}.make (col_x (i + 4) + 25, 25))
+				add_holder (create {FREE_CELL_COMPONENT}.make (col_x (i + 4) + 25, 25))
 			end
+		end
+
+	add_holder (a_holder: CARD_HOLDER)
+		do
+			all_holders.extend (a_holder)
+			add_holder_on_pointer_down (a_holder)
+			add_holder_on_pointer_up (a_holder)
 		end
 
 	create_home_cells
@@ -86,7 +93,7 @@ feature
 			across
 				1 |..| 4 is i
 			loop
-				all_holders.extend (create {HOME_CELL_COMPONENT}.make (col_x (i) - 25, 25))
+				add_holder (create {HOME_CELL_COMPONENT}.make (col_x (i) - 25, 25))
 			end
 		end
 
@@ -142,36 +149,58 @@ feature
 			until
 				handled
 			loop
-				if not holder.is_empty and then holder.is_pick_xy (x, y) then
-					holder.highlight := True
-					holder.draw
-					soft_update
-					active_holder := holder
-					handled := true
-				end
+				handled := holder.do_on_pointer_down (x, y)
 			end
+		end
+
+	add_holder_on_pointer_down (a_holder: CARD_HOLDER)
+		do
+			a_holder.set_on_pointer_down (agent  (h: CARD_HOLDER; x, y: INTEGER): BOOLEAN
+				do
+					if not h.is_empty and then h.is_pick_xy (x, y) then
+						h.highlight := True
+						h.draw
+						soft_update
+						active_holder := h
+						Result := True
+					end
+				end (a_holder, ?, ?))
 		end
 
 	all_holders: LINKED_LIST [CARD_HOLDER]
 
 	pointerup (x, y: INTEGER)
 		local
-			c: CARD_COMPONENT
+			handled: BOOLEAN
 		do
-			if attached active_holder as holder then
-				holder.highlight := False
+			across
+				all_holders is holder
+			until
+				handled
+			loop
+				handled := holder.do_on_pointer_up (x, y)
+			end
+			if attached active_holder as ah then
+				ah.highlight := False
+				ah.draw
 				active_holder := Void
-				if attached drop_holder_at (x, y) as drop_at then
-					if drop_at /= holder and drop_at.is_valid_item (holder.item) then
-						c := holder.item
-						holder.remove
-						drop_at.extend (c)
-						drop_at.draw
-					end
-				end
-				holder.draw
+				soft_update
+			elseif handled then
 				soft_update
 			end
+		end
+
+	add_holder_on_pointer_up (a_holder: CARD_HOLDER)
+		do
+			a_holder.set_on_pointer_up (agent  (h: CARD_HOLDER; x, y: INTEGER): BOOLEAN
+				do
+					if attached active_holder as ah and then (h.is_drop_xy (x, y) and h.is_valid_item (ah.item)) then
+						h.extend (ah.item)
+						ah.remove
+						h.draw
+						Result := True
+					end
+				end (a_holder, ?, ?))
 		end
 
 	drop_holder_at (x, y: INTEGER): detachable CARD_HOLDER

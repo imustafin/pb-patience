@@ -24,6 +24,7 @@
 		<library name="wrap_inkview" location="..\wrap_inkview\wrap_inkview.ecf"/>
 		<cluster name="pb-patience" location=".\">
 			<cluster name="gui" location=".\gui\"/>
+			<cluster name="inkvision" location=".\inkvision\"/>
 		</cluster>
 	</target>
 </system>
