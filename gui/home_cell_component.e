@@ -45,7 +45,7 @@ feature
 			if is_empty then
 				Result := card.is_ace
 			else
-				Result := card.is_next_rank_after (item) and card.same_type (item)
+				Result := card.is_next_rank_after (item) and card.is_same_suit (item)
 			end
 		end
 
