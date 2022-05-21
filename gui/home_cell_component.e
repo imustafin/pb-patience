@@ -4,37 +4,27 @@ class
 inherit
 
 	CARD_HOLDER
+		redefine
+			draw
+		end
 
 	INKVIEW_FUNCTIONS_API
 
 	COLORS
 
-create
-	make
-
-feature {NONE}
-
-	make (a_x, a_y: INTEGER)
-		do
-			x := a_x
-			y := a_y
-		end
-
 feature
-
-	x, y: INTEGER
 
 	Width: INTEGER
 		once
 			Result := {CARD_COMPONENT}.width
-		ensure
+		ensure then
 			class
 		end
 
 	Height: INTEGER
 		once
 			Result := {CARD_COMPONENT}.height
-		ensure
+		ensure then
 			class
 		end
 

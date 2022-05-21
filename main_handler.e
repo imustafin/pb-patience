@@ -17,13 +17,28 @@ feature {NONE}
 	init
 		local
 			deck: ARRAY [CARD_COMPONENT]
+			top_row: IV_H_BOX
+			tableau: IV_H_BOX
 		do
-			create all_holders.make
+			create components.make
 			deck := {CARD_COMPONENT}.new_deck
 			shuffle_deck (deck)
-			deal_to_tableau (deck)
-			create_free_cells
-			create_home_cells
+
+				-- Make top row with cells
+			create top_row.make (50, 25, 1872 - 100, {CARD_COMPONENT}.height)
+			top_row.set_space_evenly
+			top_row.append (new_home_cells)
+			top_row.extend (create {IV_SPACE}.make (60, 0))
+			top_row.append (new_free_cells)
+			components.extend (top_row)
+
+				-- Make columns
+			create tableau.make (100, 25 + top_row.y + top_row.height, 1872 - 200, 2000)
+			tableau.set_space_evenly
+			tableau.append (make_columns_with_cards_dealt (deck))
+			components.extend (tableau)
+
+				-- Components created, do screen configuration
 			clear_screen
 			set_orientation (1)
 			set_panel_type (Panel_disabled)
@@ -46,18 +61,20 @@ feature
 			end
 		end
 
-	deal_to_tableau (deck: ARRAY [CARD_COMPONENT])
+	make_columns_with_cards_dealt (deck: ARRAY [CARD_COMPONENT]): LINKED_LIST [COLUMN_COMPONENT]
 		local
 			column: COLUMN_COMPONENT
 			d: INTEGER
 			col_len: INTEGER
 		do
+			create Result.make
 			d := 1
 			across
 				1 |..| 8 is i
 			loop
-				create column.make (col_x (i), {CARD_COMPONENT}.height + 50)
+				create column.make
 				add_holder (column)
+				Result.extend (column)
 				if i <= 4 then
 					col_len := 7
 				else
@@ -72,28 +89,37 @@ feature
 			end
 		end
 
-	create_free_cells
+	new_free_cells: LINKED_LIST [IV_COMPONENT]
+		local
+			free_cell: FREE_CELL_COMPONENT
 		do
+			create Result.make
 			across
 				1 |..| 4 is i
 			loop
-				add_holder (create {FREE_CELL_COMPONENT}.make (col_x (i + 4) + 25, 25))
+				create free_cell
+				add_holder (free_cell)
+				Result.extend (free_cell)
 			end
 		end
 
 	add_holder (a_holder: CARD_HOLDER)
 		do
-			all_holders.extend (a_holder)
 			add_holder_on_pointer_down (a_holder)
 			add_holder_on_pointer_up (a_holder)
 		end
 
-	create_home_cells
+	new_home_cells: LINKED_LIST [IV_COMPONENT]
+		local
+			home_cell: HOME_CELL_COMPONENT
 		do
+			create Result.make
 			across
 				1 |..| 4 is i
 			loop
-				add_holder (create {HOME_CELL_COMPONENT}.make (col_x (i) - 25, 25))
+				create home_cell
+				add_holder (home_cell)
+				Result.extend (home_cell)
 			end
 		end
 
@@ -145,11 +171,11 @@ feature
 			handled: BOOLEAN
 		do
 			across
-				all_holders is holder
+				components is component
 			until
 				handled
 			loop
-				handled := holder.do_on_pointer_down (x, y)
+				handled := component.do_on_pointer_down (x, y)
 			end
 		end
 
@@ -167,18 +193,18 @@ feature
 				end (a_holder, ?, ?))
 		end
 
-	all_holders: LINKED_LIST [CARD_HOLDER]
+	components: LINKED_LIST [IV_COMPONENT]
 
 	pointerup (x, y: INTEGER)
 		local
 			handled: BOOLEAN
 		do
 			across
-				all_holders is holder
+				components is component
 			until
 				handled
 			loop
-				handled := holder.do_on_pointer_up (x, y)
+				handled := component.do_on_pointer_up (x, y)
 			end
 			if attached active_holder as ah then
 				ah.highlight := False
@@ -203,19 +229,6 @@ feature
 				end (a_holder, ?, ?))
 		end
 
-	drop_holder_at (x, y: INTEGER): detachable CARD_HOLDER
-		do
-			across
-				all_holders is holder
-			until
-				Result /= Void
-			loop
-				if holder.is_drop_xy (x, y) then
-					Result := holder
-				end
-			end
-		end
-
 feature
 
 	inner_height: INTEGER
@@ -226,9 +239,9 @@ feature
 	draw_game
 		do
 			across
-				all_holders is holder
+				components is component
 			loop
-				holder.draw
+				component.draw
 			end
 		end
 

@@ -6,7 +6,13 @@ deferred class
 
 inherit
 
-	COMPONENT
+	IV_COMPONENT
+		undefine
+			do_on_pointer_up,
+			do_on_pointer_down
+		end
+
+	IV_WITH_ACTIONS
 
 feature
 
@@ -49,10 +55,6 @@ feature
 	set_highlight (a_highlight: BOOLEAN)
 		do
 			highlight := a_highlight
-		end
-
-	draw
-		deferred
 		end
 
 end

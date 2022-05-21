@@ -8,29 +8,41 @@ inherit
 	CARD_HOLDER
 		rename
 			is_drop_xy as has_point
+		redefine
+			draw,
+			set_xy
 		end
 
 	COLORS
-
-	COMPONENT
 
 create
 	make
 
 feature {NONE}
 
-	make (a_x, a_y: INTEGER)
+	make
 		do
 			create cards.make
-			x := a_x
-			y := a_y
 		end
 
 feature
 
 	cards: LINKED_LIST [CARD_COMPONENT]
 
-	x, y: INTEGER
+	relayout
+		do
+			across
+				cards as c
+			loop
+				c.item.set_xy (x, y + (c.cursor_index - 1) * offset)
+			end
+		end
+
+	set_xy (a_x, a_y: INTEGER)
+		do
+			Precursor (a_x, a_y)
+			relayout
+		end
 
 	extend (card: CARD_COMPONENT)
 		do
@@ -60,7 +72,7 @@ feature
 	Width: INTEGER
 		once
 			Result := {CARD_COMPONENT}.width
-		ensure
+		ensure then
 			class
 		end
 
