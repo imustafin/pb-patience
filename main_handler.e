@@ -17,19 +17,19 @@ feature {NONE}
 	init
 		local
 			deck: ARRAY [CARD_COMPONENT]
-			top_row: IV_H_BOX
-			tableau: IV_H_BOX
-			game_stack: IV_V_BOX
+			top_row: IV_LINEAR_BOX
+			tableau: IV_LINEAR_BOX
+			game_stack: IV_LINEAR_BOX
 		do
 			create components.make
 			deck := {CARD_COMPONENT}.new_deck
 			shuffle_deck (deck)
-			create game_stack.make (0, 0, 1872, 3000)
-			game_stack.set_h_align_center
+			create game_stack.make_vertical (0, 0, 1872, 3000)
+			game_stack.set_align_center
 			components.extend (game_stack)
 
 				-- Make top row with cells
-			create top_row.make (0, 0, 1872 - 100, {CARD_COMPONENT}.height)
+			create top_row.make_horizontal (0, 0, 1872 - 100, {CARD_COMPONENT}.height)
 			top_row.set_space_evenly
 			top_row.append (new_home_cells)
 			top_row.extend (create {IV_SPACE}.make (60, 0))
@@ -40,7 +40,7 @@ feature {NONE}
 			game_stack.extend (create {IV_SPACE}.make (0, 25))
 
 				-- Make columns
-			create tableau.make (0, 0, 1872 - 200, 2000)
+			create tableau.make_horizontal (0, 0, 1872 - 200, 2000)
 			tableau.set_space_evenly
 			tableau.append (make_columns_with_cards_dealt (deck))
 			game_stack.extend (tableau)
