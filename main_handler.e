@@ -19,24 +19,31 @@ feature {NONE}
 			deck: ARRAY [CARD_COMPONENT]
 			top_row: IV_H_BOX
 			tableau: IV_H_BOX
+			game_stack: IV_V_BOX
 		do
 			create components.make
 			deck := {CARD_COMPONENT}.new_deck
 			shuffle_deck (deck)
+			create game_stack.make (0, 0, 1872, 3000)
+			game_stack.set_h_align_center
+			components.extend (game_stack)
 
 				-- Make top row with cells
-			create top_row.make (50, 25, 1872 - 100, {CARD_COMPONENT}.height)
+			create top_row.make (0, 0, 1872 - 100, {CARD_COMPONENT}.height)
 			top_row.set_space_evenly
 			top_row.append (new_home_cells)
 			top_row.extend (create {IV_SPACE}.make (60, 0))
 			top_row.append (new_free_cells)
-			components.extend (top_row)
+			game_stack.extend (top_row)
+
+				-- Space between top row and tableau
+			game_stack.extend (create {IV_SPACE}.make (0, 25))
 
 				-- Make columns
-			create tableau.make (100, 25 + top_row.y + top_row.height, 1872 - 200, 2000)
+			create tableau.make (0, 0, 1872 - 200, 2000)
 			tableau.set_space_evenly
 			tableau.append (make_columns_with_cards_dealt (deck))
-			components.extend (tableau)
+			game_stack.extend (tableau)
 
 				-- Components created, do screen configuration
 			clear_screen
@@ -231,11 +238,6 @@ feature
 
 feature
 
-	inner_height: INTEGER
-		do
-			Result := screen_height - panel_height
-		end
-
 	draw_game
 		do
 			across
@@ -243,16 +245,6 @@ feature
 			loop
 				component.draw
 			end
-		end
-
-feature
-
-	col_x (col: INTEGER): INTEGER
-			-- `x` for the `col`-th column on screen
-		require
-			col >= 1
-		do
-			Result := 130 + ((col - 1) * (30 + {CARD_COMPONENT}.width))
 		end
 
 end

@@ -1,5 +1,5 @@
 class
-	IV_H_BOX
+	IV_V_BOX
 
 inherit
 
@@ -33,6 +33,15 @@ feature
 			relayout
 		end
 
+	h_align: INTEGER
+
+	H_align_center: INTEGER = 1
+
+	set_h_align_center
+		do
+			h_align := H_align_center
+		end
+
 feature
 
 	width: INTEGER
@@ -48,16 +57,19 @@ feature
 			pad: INTEGER
 		do
 			if space = Space_evenly then
-				free_space := width - content_width
+				free_space := height - content_height
 				pad := free_space // (implementation.count + 1)
 			end
-			xx := x + pad
-			yy := y
+			xx := x
+			yy := y + pad
 			across
 				implementation is c
 			loop
+				if h_align = H_align_center then
+					xx := x + ((width - c.width) // 2)
+				end
 				c.set_xy (xx, yy)
-				xx := xx + c.width + pad
+				yy := yy + c.height + pad
 			end
 		end
 
@@ -66,7 +78,7 @@ feature
 			across
 				implementation is c
 			loop
-				Result := Result.max (c.height)
+				Result := Result + c.height
 			end
 		end
 
@@ -75,7 +87,7 @@ feature
 			across
 				implementation is c
 			loop
-				Result := Result + c.width
+				Result := Result.max (c.width)
 			end
 		end
 
