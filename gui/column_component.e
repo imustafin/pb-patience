@@ -20,9 +20,11 @@ create
 
 feature {NONE}
 
-	make
+	make (a_height: INTEGER)
 		do
 			create cards.make
+			width := {CARD_COMPONENT}.width
+			height := a_height
 		end
 
 feature
@@ -69,18 +71,6 @@ feature
 
 	Offset: INTEGER = 60
 
-	Width: INTEGER
-		once
-			Result := {CARD_COMPONENT}.width
-		ensure then
-			class
-		end
-
-	Height: INTEGER
-		do
-			Result := screen_height - y
-		end
-
 	has_point (a_x, a_y: INTEGER): BOOLEAN
 		do
 			Result := x <= a_x and a_x <= (x + width) and y <= a_y and a_y <= (y + height)
@@ -117,5 +107,8 @@ feature
 				Result := item.has_point (a_x, a_y)
 			end
 		end
+
+invariant
+	exactly_card_width: width = {CARD_COMPONENT}.width
 
 end

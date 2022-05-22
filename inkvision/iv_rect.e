@@ -8,17 +8,25 @@ feature
 	y: INTEGER
 
 	width: INTEGER
-		deferred
-		end
 
 	height: INTEGER
-		deferred
-		end
 
 	set_xy (a_x, a_y: INTEGER)
 		do
 			x := a_x
 			y := a_y
+		ensure
+			x_set: x = a_x
+			y_set: y = a_y
+		end
+
+	set_wh (a_width, a_height: INTEGER)
+		do
+			width := a_width
+			height := a_height
+		ensure
+			width_set: width = a_width
+			height_set: height = a_height
 		end
 
 feature

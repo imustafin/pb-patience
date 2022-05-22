@@ -25,6 +25,9 @@
 		<cluster name="pb-patience" location=".\">
 			<cluster name="gui" location=".\gui\"/>
 			<cluster name="inkvision" location=".\inkvision\"/>
+			<cluster name="games" location=".\games\">
+				<cluster name="free_cell" location=".\games\free_cell\"/>
+			</cluster>
 		</cluster>
 	</target>
 </system>

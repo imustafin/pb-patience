@@ -16,10 +16,4 @@ feature {NONE}
 			height := a_height
 		end
 
-feature
-
-	width: INTEGER
-
-	height: INTEGER
-
 end

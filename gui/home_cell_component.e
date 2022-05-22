@@ -12,20 +12,15 @@ inherit
 
 	COLORS
 
-feature
+create
+	make
 
-	Width: INTEGER
-		once
-			Result := {CARD_COMPONENT}.width
-		ensure then
-			class
-		end
+feature {NONE}
 
-	Height: INTEGER
-		once
-			Result := {CARD_COMPONENT}.height
-		ensure then
-			class
+	make
+		do
+			width := {CARD_COMPONENT}.width
+			height := {CARD_COMPONENT}.height
 		end
 
 feature
@@ -90,5 +85,9 @@ feature
 feature {NONE}
 
 	inner_item: detachable CARD_COMPONENT
+
+invariant
+	exactly_card_width: width = {CARD_COMPONENT}.width
+	exactly_card_height: height = {CARD_COMPONENT}.height
 
 end

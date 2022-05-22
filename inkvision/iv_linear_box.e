@@ -74,30 +74,26 @@ feature -- Alignment (cross axis)
 
 feature
 
-	width: INTEGER
-
-	height: INTEGER
-
 	is_vertical: BOOLEAN
 
 feature {NONE}
 
 	relayout
 		local
-			free_space, pad: INTEGER
+			pad: INTEGER
 			main, cross: INTEGER
 		do
 			if space = Space_evenly then
-				free_space := main_size - main_component_size
-				pad := free_space // (implementation.count + 1)
+				pad := (main_size - main_component_size) // (implementation.count + 1)
 			end
 			main := main_coordinate + pad
-			cross := cross_coordinate
 			across
 				implementation is c
 			loop
 				if align = Align_center then
 					cross := cross_coordinate + ((cross_size - other_cross_size (c)) // 2)
+				else
+					cross := cross_coordinate
 				end
 				adjust_child_xy (c, main, cross)
 				main := main + other_main_size (c) + pad
@@ -175,6 +171,8 @@ feature {NONE}
 				c.set_xy (a_main, a_cross)
 			end
 		end
+
+feature
 
 	content_width: INTEGER
 		do

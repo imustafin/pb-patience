@@ -8,7 +8,8 @@ inherit
 			draw,
 			do_on_pointer_up,
 			do_on_pointer_down,
-			set_xy
+			set_xy,
+			set_wh
 		end
 
 feature {NONE}
@@ -40,16 +41,27 @@ feature
 
 	set_xy (a_x, a_y: INTEGER)
 		do
-			Precursor (a_x, a_y)
-			relayout
+			if x /= a_x or y /= a_y then
+				Precursor (a_x, a_y)
+				relayout
+			end
 		end
 
-feature
+	set_wh (a_width, a_height: INTEGER)
+		do
+			if width /= a_width or height /= a_height then
+				Precursor (a_width, a_height)
+				relayout
+			end
+		end
 
 feature {NONE}
 
 	relayout
 			-- Assign `x` and `y` for all in `implementation`
+		require
+			enough_width: width >= content_width
+			enough_height: height >= content_height
 		deferred
 		ensure
 			all_inside: across implementation is c all is_rect_inside (c) end
@@ -69,22 +81,27 @@ feature
 
 	do_on_pointer_up (a_x, a_y: INTEGER): BOOLEAN
 		do
-			Result := handle_one (agent {IV_COMPONENT}.do_on_pointer_up(a_x, a_y))
+			across
+				implementation.new_cursor.reversed is c
+			until
+				Result
+			loop
+				if c.is_point_inside (a_x, a_y) then
+					Result := c.do_on_pointer_up (a_x, a_y)
+				end
+			end
 		end
 
 	do_on_pointer_down (a_x, a_y: INTEGER): BOOLEAN
-		do
-			Result := handle_one (agent {IV_COMPONENT}.do_on_pointer_down(a_x, a_y))
-		end
-
-	handle_one (a_agent: FUNCTION [IV_COMPONENT, BOOLEAN]): BOOLEAN
 		do
 			across
 				implementation.new_cursor.reversed is c
 			until
 				Result
 			loop
-				Result := a_agent.item (c)
+				if c.is_point_inside (a_x, a_y) then
+					Result := c.do_on_pointer_down (a_x, a_y)
+				end
 			end
 		end
 

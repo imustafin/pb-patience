@@ -92,10 +92,10 @@ feature {NONE} -- Initialization
 			end
 		ensure
 			handler_after_init: type = Evt_init implies handler /= Void
-		rescue
-			if can_show_exceptions then
-				show_exception_dialog
-			end
+--		rescue
+--			if can_show_exceptions then
+--				show_exception_dialog
+--			end
 		end
 
 end
