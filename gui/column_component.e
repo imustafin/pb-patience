@@ -10,7 +10,8 @@ inherit
 			is_drop_xy as has_point
 		redefine
 			draw,
-			set_xy
+			set_xy,
+			layout
 		end
 
 	COLORS
@@ -23,15 +24,17 @@ feature {NONE}
 	make (a_height: INTEGER)
 		do
 			create cards.make
-			width := {CARD_COMPONENT}.width
+			width := {CARD_COMPONENT}.Const_width
 			height := a_height
 		end
 
 feature
 
+	is_layout_fresh: BOOLEAN = True
+
 	cards: LINKED_LIST [CARD_COMPONENT]
 
-	relayout
+	layout
 		do
 			across
 				cards as c
@@ -43,7 +46,7 @@ feature
 	set_xy (a_x, a_y: INTEGER)
 		do
 			Precursor (a_x, a_y)
-			relayout
+			layout
 		end
 
 	extend (card: CARD_COMPONENT)
@@ -77,15 +80,23 @@ feature
 		end
 
 	draw
+		local
+			old_inverted: BOOLEAN
 		do
 			fill_area (x, y, width, height, White)
 			across
 				cards is c
 			loop
-				c.draw (False)
+				old_inverted := c.inverted
+				c.inverted := False
+				c.draw
+				c.inverted := old_inverted
 			end
 			if highlight and not is_empty then
-				item.draw (True)
+				old_inverted := item.inverted
+				item.inverted := True
+				item.draw
+				item.inverted := old_inverted
 			end
 		end
 
@@ -109,6 +120,6 @@ feature
 		end
 
 invariant
-	exactly_card_width: width = {CARD_COMPONENT}.width
+	exactly_card_width: width = {CARD_COMPONENT}.Const_width
 
 end

@@ -22,7 +22,7 @@ feature {NONE}
 		do
 			set_orientation (1)
 			set_panel_type (Panel_disabled)
-			create game.make (0, 0, 2000, 2000, since_epoch)
+			create game.make (0, 0, since_epoch)
 		end
 
 feature
@@ -54,6 +54,7 @@ feature
 
 	draw
 		do
+			game.layout
 			game.draw
 		end
 

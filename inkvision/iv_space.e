@@ -16,4 +16,8 @@ feature {NONE}
 			height := a_height
 		end
 
+feature
+
+	is_layout_fresh: BOOLEAN = True
+
 end

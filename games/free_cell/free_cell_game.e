@@ -28,7 +28,7 @@ feature {NONE}
 
 	tableau: FREE_CELL_TABLEAU
 
-	make (a_x, a_y, a_width, a_height, a_deal_number: INTEGER)
+	make (a_x, a_y, a_deal_number: INTEGER)
 		local
 			deck: ARRAY [CARD_COMPONENT]
 		do
@@ -37,20 +37,18 @@ feature {NONE}
 				-- Components
 			make_vertical (a_x, a_y, 0, 0)
 			set_align_center
-			create top_space.make(0, 0)
+			create top_space.make (0, 0)
 			create top_row.make_horizontal (0, 0, 0, 0)
 			top_row.set_space_evenly
 			create tableau.make
 			tableau.set_space_evenly
 			create top_tableau_space.make (0, 0)
-			extend(top_space)
+			extend (top_space)
 			extend (top_row)
 			extend (top_tableau_space) -- Space between top row and tableau
 			extend (tableau)
-			set_wh (a_width, a_height) -- Fill dimensions for `top_row` and `tableau`
 
 				-- Top row with cells
-
 			top_row.append (new_home_cells)
 			top_row.extend (create {IV_SPACE}.make (60, 0))
 			top_row.append (new_free_cells)
@@ -174,8 +172,8 @@ feature
 
 	set_wh (a_width, a_height: INTEGER)
 		do
-			top_space.set_wh(0, 25)
-			top_row.set_wh (a_width - 100, {CARD_COMPONENT}.height)
+			top_space.set_wh (0, 25)
+			top_row.set_wh (a_width - 100, {CARD_COMPONENT}.Const_height)
 			top_tableau_space.set_wh (0, 25)
 			tableau.set_wh (a_width - 200, a_height - top_space.height - top_row.height - top_tableau_space.height)
 			Precursor (a_width, a_height)

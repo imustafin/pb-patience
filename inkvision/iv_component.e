@@ -23,7 +23,20 @@ feature -- Events
 
 feature
 
+	is_layout_fresh: BOOLEAN
+		deferred
+		end
+
+
+	layout
+		do
+		ensure
+      is_layout_fresh
+		end
+
 	draw
+		require
+    is_layout_fresh
 		do
 		end
 

@@ -53,7 +53,7 @@ feature -- Spacing (main axis)
 		do
 			if space /= space_evenly then
 				space := space_evenly
-				relayout
+				expire_layout
 			end
 		end
 
@@ -68,7 +68,7 @@ feature -- Alignment (cross axis)
 		do
 			if align /= Align_center then
 				align := Align_center
-				relayout
+				expire_layout
 			end
 		end
 
@@ -76,29 +76,33 @@ feature
 
 	is_vertical: BOOLEAN
 
-feature {NONE}
-
-	relayout
+	layout
 		local
 			pad: INTEGER
 			main, cross: INTEGER
 		do
-			if space = Space_evenly then
-				pad := (main_size - main_component_size) // (implementation.count + 1)
-			end
-			main := main_coordinate + pad
-			across
-				implementation is c
-			loop
-				if align = Align_center then
-					cross := cross_coordinate + ((cross_size - other_cross_size (c)) // 2)
-				else
-					cross := cross_coordinate
+			if not is_layout_fresh then
+				if space = Space_evenly then
+					pad := (main_size - main_component_size) // (implementation.count + 1)
 				end
-				adjust_child_xy (c, main, cross)
-				main := main + other_main_size (c) + pad
+				main := main_coordinate + pad
+				across
+					implementation is c
+				loop
+					if align = Align_center then
+						cross := cross_coordinate + ((cross_size - other_cross_size (c)) // 2)
+					else
+						cross := cross_coordinate
+					end
+					adjust_child_xy (c, main, cross)
+					c.layout
+					main := main + other_main_size (c) + pad
+				end
+				is_layout_fresh := True
 			end
 		end
+
+feature {NONE}
 
 	main_size: INTEGER
 		do

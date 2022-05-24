@@ -19,11 +19,13 @@ feature {NONE}
 
 	make
 		do
-			width := {CARD_COMPONENT}.width
-			height := {CARD_COMPONENT}.height
+			width := {CARD_COMPONENT}.Const_width
+			height := {CARD_COMPONENT}.Const_height
 		end
 
 feature
+
+	is_layout_fresh: BOOLEAN = True
 
 	is_valid_item (card: CARD_COMPONENT): BOOLEAN
 		do
@@ -60,13 +62,18 @@ feature
 		end
 
 	draw
+		local
+			old_inverted: BOOLEAN
 		do
 			if is_empty then
 				fill_area (x, y, Width, Height, White)
 				draw_rect (x, y, Width, Height, Black)
 			else
 				check attached item as i then
-					item.draw (highlight)
+					old_inverted := item.inverted
+					item.inverted := highlight
+					item.draw
+					item.inverted := old_inverted
 				end
 			end
 		end
@@ -87,7 +94,7 @@ feature {NONE}
 	inner_item: detachable CARD_COMPONENT
 
 invariant
-	exactly_card_width: width = {CARD_COMPONENT}.width
-	exactly_card_height: height = {CARD_COMPONENT}.height
+	exactly_card_width: width = {CARD_COMPONENT}.Const_width
+	exactly_card_height: height = {CARD_COMPONENT}.Const_height
 
 end

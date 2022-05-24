@@ -7,6 +7,11 @@ inherit
 
 	COLORS
 
+	IV_COMPONENT
+		redefine
+			draw
+		end
+
 create
 	make
 
@@ -19,16 +24,12 @@ feature {NONE}
 		do
 			suit := a_suit
 			rank := a_rank
+			width := Const_width
+			height := Const_height
 		ensure
 			suit_set: suit = a_suit
 			rank_set: rank = a_rank
 		end
-
-feature
-
-	x: INTEGER
-
-	y: INTEGER
 
 feature {CARD_COMPONENT}
 
@@ -66,26 +67,18 @@ feature
 			Result := Suits [suit].is_red /= Suits [a_other.suit].is_red
 		end
 
-feature {COLUMN_COMPONENT, CARD_HOLDER}
-
-	set_xy (a_x, a_y: INTEGER)
-		do
-			x := a_x
-			y := a_y
-		end
-
 feature
 
-	Width: INTEGER = 175
+	is_layout_fresh: BOOLEAN = True
 
-	Height: INTEGER
-		once
-			Result := (3.5 / 2.25 * Width).floor
-		ensure
-			class
+	inverted: BOOLEAN assign set_inverted
+
+	set_inverted(a_inverted: BOOLEAN)
+		do
+			inverted := a_inverted
 		end
 
-	draw (inverted: BOOLEAN)
+	draw
 		local
 			c_str: C_STRING
 			pad: INTEGER
@@ -165,8 +158,18 @@ feature
 			Result := suit = a_other.suit
 		end
 
+feature
+	Const_width: INTEGER = 175
+	Const_height: INTEGER
+		once
+			Result := (3.5 / 2.25 * Const_width).floor
+		ensure
+			class
+		end
+
 invariant
 	existing_suit: Suits.valid_index (suit)
 	existing_rank: Ranks.valid_index (rank)
-
+	width_constant: width = Const_width 
+	height_in_ratio: height = Const_height
 end
