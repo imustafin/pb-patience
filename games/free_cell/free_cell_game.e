@@ -16,9 +16,6 @@ inherit
 create
 	make
 
-feature
-	title: STRING_32 = "FreeCell"
-
 feature {NONE}
 
 	deal_number: INTEGER
@@ -36,6 +33,7 @@ feature {NONE}
 			deck: ARRAY [CARD_COMPONENT]
 		do
 			deal_number := a_deal_number
+			title := "FreeCell #" + a_deal_number.out
 
 				-- Components
 			make_vertical (a_x, a_y, 0, 0)
@@ -197,8 +195,12 @@ feature -- Events
 			end
 		end
 
-feature -- Game state
+feature {NONE} -- Game state
 
 	active_holder: detachable CARD_HOLDER
+
+feature
+
+	title: STRING_32
 
 end
