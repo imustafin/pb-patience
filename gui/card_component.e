@@ -73,19 +73,24 @@ feature
 
 	inverted: BOOLEAN assign set_inverted
 
-	set_inverted(a_inverted: BOOLEAN)
+	set_inverted (a_inverted: BOOLEAN)
 		do
 			inverted := a_inverted
 		end
 
+	card_font: detachable IFONT_S_STRUCT_API
+		once
+			Result := {IV_UTILS}.open_font ("LiberationSans", 42, True)
+		ensure
+			class
+		end
+
 	draw
 		local
-			c_str: C_STRING
 			pad: INTEGER
 		do
 			pad := 5
-			create c_str.make ({UTF_CONVERTER}.string_32_to_utf_8_string_8 (card_title))
-			if attached {MAIN_HANDLER}.card_font as f then
+			if attached card_font as f then
 				if Suits [suit].is_red then
 					set_font (f, Dgrey)
 				else
@@ -102,7 +107,7 @@ feature
 				fill_area (x, y, width, height, Black)
 			end
 			draw_rect (x, y, width, height, Black)
-			draw_text_rect (x + pad, y + pad, width - pad * 2, height - pad * 2, c_str.item, 0).do_nothing
+			{IV_UTILS}.draw_text_rect (x + pad, y + pad, width - pad * 2, height - pad * 2, card_title, 0)
 		end
 
 	invert
@@ -159,7 +164,9 @@ feature
 		end
 
 feature
+
 	Const_width: INTEGER = 175
+
 	Const_height: INTEGER
 		once
 			Result := (3.5 / 2.25 * Const_width).floor
@@ -170,6 +177,7 @@ feature
 invariant
 	existing_suit: Suits.valid_index (suit)
 	existing_rank: Ranks.valid_index (rank)
-	width_constant: width = Const_width 
+	width_constant: width = Const_width
 	height_in_ratio: height = Const_height
+
 end

@@ -16,6 +16,9 @@ inherit
 create
 	make
 
+feature
+	title: STRING_32 = "FreeCell"
+
 feature {NONE}
 
 	deal_number: INTEGER
