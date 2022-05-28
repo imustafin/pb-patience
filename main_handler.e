@@ -25,7 +25,7 @@ feature {NONE}
 
 	topbar: TOPBAR
 
-	game: FREE_CELL_GAME
+	game: GAME
 
 	init
 		local
@@ -38,7 +38,7 @@ feature {NONE}
 
 				-- Components
 			make_vertical (0, 0, 0, 0)
-			create game.make (0, 0, since_epoch)
+			create {SPIDER_GAME} game.make_with_seed (since_epoch)
 			create topbar.make (0, 0, game.title, cmenu)
 			set_game (game)
 
@@ -47,7 +47,7 @@ feature {NONE}
 			fill_menu_items
 		end
 
-	set_game (a_game: FREE_CELL_GAME)
+	set_game (a_game: GAME)
 		do
 			game := a_game
 			implementation.wipe_out
@@ -106,7 +106,13 @@ feature -- Menu
 		do
 			inspect a_index
 			when I_new_game then
-				set_game (create {FREE_CELL_GAME}.make (0, 0, since_epoch))
+				set_game (game.new_with_seed (since_epoch))
+				show
+			when I_play_free_cell then
+				set_game (create {FREE_CELL_GAME}.make_with_seed (since_epoch))
+				show
+			when I_play_spider then
+				set_game (create {SPIDER_GAME}.make_with_seed (since_epoch))
 				show
 			when I_exit then
 				close_app
@@ -117,6 +123,10 @@ feature -- Menu
 	I_exit: INTEGER = 100
 
 	I_new_game: INTEGER = 200
+
+	I_play_free_cell: INTEGER = 300
+
+	I_play_spider: INTEGER = 400
 
 	cmenu: ICONTEXT_MENU_S_STRUCT_API
 
@@ -134,19 +144,31 @@ feature -- Menu
 
 	fill_menu_items
 		local
-			menu: MEMORY_ARRAY [IMENU_S_STRUCT_API]
+			menu, games: MEMORY_ARRAY [IMENU_S_STRUCT_API]
 		do
 			create menu.make (5, {IMENU_S_STRUCT_API}.structure_size)
-			check attached menu as m then
-				m [1].set_type (Item_active)
-				m [1].set_text (create {C_STRING}.make ("New game"))
-				m [1].set_index (I_new_game)
-				m [2].set_type (Item_separator)
-				m [3].set_type (Item_active)
-				m [3].set_text (create {C_STRING}.make ("Exit"))
-				m [3].set_index (I_exit)
-				cmenu.set_menu (m [1])
-			end
+				-- New Game
+			menu [1].set_type (Item_active)
+			menu [1].set_text (create {C_STRING}.make ("New game"))
+			menu [1].set_index (I_new_game)
+
+				-- Switch game
+			menu [2].set_type (Item_submenu)
+			menu [2].set_text (create {C_STRING}.make ("Switch game"))
+			create games.make (2, {IMENU_S_STRUCT_API}.structure_size)
+			games [1].set_type (Item_active)
+			games [1].set_text (create {C_STRING}.make ("FreeCell"))
+			games [1].set_index (I_play_free_cell)
+			games [2].set_type (Item_active)
+			games [2].set_text (create {C_STRING}.make ("Spider"))
+			games [2].set_index (I_play_spider)
+			menu [2].set_submenu (games [1])
+
+				-- Exit button
+			menu [3].set_type (Item_active)
+			menu [3].set_text (create {C_STRING}.make ("Exit"))
+			menu [3].set_index (I_exit)
+			cmenu.set_menu (menu [1])
 		end
 
 end

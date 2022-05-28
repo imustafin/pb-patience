@@ -27,6 +27,7 @@
 			<cluster name="inkvision" location=".\inkvision\"/>
 			<cluster name="games" location=".\games\">
 				<cluster name="free_cell" location=".\games\free_cell\"/>
+				<cluster name="spider" location=".\games\spider\"/>
 			</cluster>
 		</cluster>
 	</target>

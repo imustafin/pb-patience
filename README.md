@@ -7,3 +7,4 @@ PocketBook Patience Collection written in Eiffel.
 
 ## Games
 * FreeCell with rules from http://www.solitairecity.com/Help/FreeCell.shtml
+* Spider with rules from http://www.solitairecity.com/Help/Spider.shtml

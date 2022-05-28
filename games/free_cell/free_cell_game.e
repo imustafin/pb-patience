@@ -5,6 +5,16 @@ inherit
 
 	INKVIEW_FUNCTIONS_API
 
+	GAME
+		undefine
+			set_xy,
+			set_wh,
+			do_on_pointer_down,
+			do_on_pointer_up,
+			layout,
+			draw
+		end
+
 	IV_LINEAR_BOX
 		rename
 			make as iv_linear_box_make
@@ -14,7 +24,7 @@ inherit
 		end
 
 create
-	make
+	make_with_seed
 
 feature {NONE}
 
@@ -28,7 +38,7 @@ feature {NONE}
 
 	tableau: FREE_CELL_TABLEAU
 
-	make (a_x, a_y, a_deal_number: INTEGER)
+	make_with_seed (a_deal_number: INTEGER)
 		local
 			deck: ARRAY [CARD_COMPONENT]
 		do
@@ -36,7 +46,7 @@ feature {NONE}
 			title := "FreeCell #" + a_deal_number.out
 
 				-- Components
-			make_vertical (a_x, a_y, 0, 0)
+			make_vertical (0, 0, 0, 0)
 			set_align_center
 			create top_space.make (0, 0)
 			create top_row.make_horizontal (0, 0, 0, 0)
@@ -177,14 +187,14 @@ feature
 			top_row.set_wh (a_width - 100, {CARD_COMPONENT}.Const_height)
 			top_tableau_space.set_wh (0, 25)
 			tableau.set_wh (a_width - 200, a_height - top_space.height - top_row.height - top_tableau_space.height)
-			Precursor (a_width, a_height)
+			Precursor {IV_LINEAR_BOX} (a_width, a_height)
 		end
 
 feature -- Events
 
 	do_on_pointer_up (a_x, a_y: INTEGER): BOOLEAN
 		do
-			Result := Precursor (a_x, a_y)
+			Result :=  Precursor {IV_LINEAR_BOX} (a_x, a_y)
 			if attached active_holder as ah then
 				active_holder := Void
 				ah.highlight := False
@@ -198,6 +208,11 @@ feature -- Events
 feature {NONE} -- Game state
 
 	active_holder: detachable CARD_HOLDER
+
+	new_with_seed (a_seed: INTEGER): FREE_CELL_GAME
+		do
+			create Result.make_with_seed(a_seed)
+		end
 
 feature
 
