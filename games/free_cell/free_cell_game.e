@@ -66,7 +66,7 @@ feature {NONE}
 
 				-- Tableau
 			deck := {CARD_COMPONENT}.new_deck
-			shuffle_deck (deck)
+			{UTILS}.shuffle_deck (deck, deal_number)
 			tableau.append (make_columns_with_cards_dealt (deck, tableau.height))
 		end
 
@@ -84,25 +84,7 @@ feature {NONE}
 			end
 		end
 
-	shuffle_deck (deck: ARRAY [CARD_COMPONENT])
-		local
-			j: INTEGER
-			r: RANDOM
-			t: CARD_COMPONENT
-		do
-			create r.set_seed (deal_number)
-			across
-				1 |..| deck.count is c
-			loop
-				r.forth
-				j := r.item \\ c + 1
-				t := deck [c]
-				deck [c] := deck [j]
-				deck [j] := t
-			end
-		ensure
-			deck.count = (old deck).count and across (old deck) is d all deck.has (d) end
-		end
+
 
 	make_columns_with_cards_dealt (deck: ARRAY [CARD_COMPONENT]; a_height: INTEGER): LINKED_LIST [COLUMN_COMPONENT]
 		local

@@ -6,19 +6,31 @@ inherit
 	INKVIEW_FUNCTIONS_API
 		rename
 			draw_text_rect as draw_text_rect_raw,
-			open_font as open_font_raw
+			open_font as open_font_raw,
+			draw_string as draw_string_raw
 		export
 			{NONE} open_font_raw
 		end
 
 feature
 
-	draw_text_rect (a_x, a_y, a_width, a_height: INTEGER; a_string: STRING_32; a_flags: INTEGER)
-		local
-			c_str: C_STRING
+	printable_string_32_pointer (a_string: STRING_32): POINTER
 		do
-			create c_str.make ({UTF_CONVERTER}.string_32_to_utf_8_string_8 (a_string))
-			draw_text_rect_raw (a_x, a_y, a_width, a_height, c_str.item, a_flags).do_nothing
+			Result := (create {C_STRING}.make ({UTF_CONVERTER}.string_32_to_utf_8_string_8 (a_string))).item
+		ensure
+			class
+		end
+
+	draw_text_rect (a_x, a_y, a_width, a_height: INTEGER; a_string: STRING_32; a_flags: INTEGER)
+		do
+			draw_text_rect_raw (a_x, a_y, a_width, a_height, printable_string_32_pointer (a_string), a_flags).do_nothing
+		ensure
+			class
+		end
+
+	draw_string (a_x, a_y: INTEGER; a_string: STRING_32)
+		do
+			draw_string_raw (a_x, a_y, printable_string_32_pointer (a_string))
 		ensure
 			class
 		end

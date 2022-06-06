@@ -102,6 +102,16 @@ feature
 			end
 		end
 
+	propagate_height
+		do
+			across
+				implementation is i
+			loop
+				i.set_wh(i.width, height)
+			end
+			expire_layout
+		end
+
 feature {NONE}
 
 	main_size: INTEGER
@@ -202,6 +212,12 @@ feature
 					Result := Result.max (c.height)
 				end
 			end
+		end
+
+feature
+	is_empty: BOOLEAN
+		do
+			Result := implementation.is_empty
 		end
 
 end
