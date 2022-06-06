@@ -57,12 +57,14 @@ feature {NONE}
 				tableau.extend (col)
 				register_callbacks (col)
 			end
-				-- Deal cards
 			n := 1
 			across
-				cards.subarray (1, 44) is card
+				cards.subarray (1, 44) as card
 			loop
-				columns.i_th (n).extend (card)
+				columns.i_th (n).extend (card.item)
+				if card.cursor_index <= 34 then
+					card.item.flip_face_down
+				end
 				n := n + 1
 				if n > 10 then
 					n := 1

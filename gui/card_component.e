@@ -26,6 +26,7 @@ feature {NONE}
 			rank := a_rank
 			width := Const_width
 			height := Const_height
+			is_face_up := True
 		ensure
 			suit_set: suit = a_suit
 			rank_set: rank = a_rank
@@ -38,6 +39,21 @@ feature {CARD_COMPONENT}
 
 	rank: INTEGER
 			-- Index in `Ranks`
+
+feature
+
+	is_face_up: BOOLEAN
+			-- Should this card be drawn with face up?
+
+	flip_face_up
+		do
+			is_face_up := True
+		end
+
+	flip_face_down
+		do
+			is_face_up := False
+		end
 
 feature
 
@@ -107,7 +123,11 @@ feature
 				fill_area (x, y, width, height, Black)
 			end
 			draw_rect (x, y, width, height, Black)
-			{IV_UTILS}.draw_text_rect (x + pad, y + pad, width - pad * 2, height - pad * 2, card_title, 0)
+			if is_face_up then
+				{IV_UTILS}.draw_text_rect (x + pad, y + pad, width - pad * 2, height - pad * 2, card_title, 0)
+			else
+				fill_area (x + 10, y  + 10, width - 20, height - 20, Dgrey)
+			end
 		end
 
 	invert

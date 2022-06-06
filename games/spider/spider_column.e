@@ -179,6 +179,9 @@ feature
 				a_other.extend (cards.item)
 				cards.remove
 			end
+			if not cards.is_empty and then not cards.last.is_face_up then
+				cards.last.flip_face_up
+			end
 		end
 
 invariant
