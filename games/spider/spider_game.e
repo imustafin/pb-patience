@@ -32,11 +32,15 @@ feature {NONE}
 
 	columns: LINKED_LIST [SPIDER_COLUMN]
 
+	bottom: IV_LINEAR_BOX
+
 	make_with_seed (a_seed: INTEGER)
 		local
+			deck: LINKED_LIST [CARD_COMPONENT]
 			col: SPIDER_COLUMN
 			cards: ARRAY [CARD_COMPONENT]
 			n: INTEGER
+			deck_image: DECK_IMAGE
 		do
 			title := "Spider #" + a_seed.out
 
@@ -44,11 +48,10 @@ feature {NONE}
 			make_vertical (0, 0, 0, 0)
 			set_align_center
 			create tableau.make_horizontal (0, 0, 0, 0)
+			create bottom.make_horizontal (0, 0, 0, 0)
 			tableau.set_space_evenly
-
-				-- Deal cards
 			create columns.make
-			cards := new_deck (a_seed)
+			deck := make_deck (a_seed)
 			across
 				1 |..| 10 is i
 			loop
@@ -57,40 +60,82 @@ feature {NONE}
 				tableau.extend (col)
 				register_callbacks (col)
 			end
+			deal_cards (deck)
+			extend (tableau)
+
+				-- Bottom bar with fundations and deck
+
+			bottom.set_space_evenly
+			create deck_image.make (deck)
+			deck_image.set_on_pointer_down (agent  (d: DECK_IMAGE; a_x, a_y: INTEGER): BOOLEAN
+				local
+					c: CARD_COMPONENT
+				do
+					if not d.cards.is_empty then
+						if across columns is l_col all not l_col.is_empty end then
+							d.cards.start
+							across
+								columns is l_col
+							until
+								d.cards.is_empty
+							loop
+								c := d.cards.item
+								d.cards.remove
+								c.flip_face_up
+								l_col.extend (c)
+								l_col.layout
+							end
+							draw
+							soft_update
+						end
+					end
+				end (deck_image, ?, ?))
+			bottom.extend (deck_image)
+			extend (bottom)
+		end
+
+	deal_cards (a_deck: LINKED_LIST [CARD_COMPONENT])
+		local
+			n: INTEGER
+			c: CARD_COMPONENT
+		do
 			n := 1
 			across
-				cards.subarray (1, 44) as card
+				1 |..| 44 is i
 			loop
-				columns.i_th (n).extend (card.item)
-				if card.cursor_index <= 34 then
-					card.item.flip_face_down
+				a_deck.finish
+				c := a_deck.item
+				a_deck.remove
+				columns.i_th (n).extend (c)
+				if i <= 34 then
+					c.flip_face_down
 				end
 				n := n + 1
 				if n > 10 then
 					n := 1
 				end
 			end
-			extend (tableau)
 		end
 
-	new_deck (a_seed: INTEGER): ARRAY [CARD_COMPONENT]
+	make_deck (a_seed: INTEGER): LINKED_LIST [CARD_COMPONENT]
 		local
-			a, b: ARRAY [CARD_COMPONENT]
+			a, b, c: ARRAY [CARD_COMPONENT]
 		do
 			a := {CARD_COMPONENT}.new_deck
 			b := {CARD_COMPONENT}.new_deck
-			create Result.make_filled (create {CARD_COMPONENT}.make (1, 1), 1, a.count * 2)
+			create c.make_filled (create {CARD_COMPONENT}.make (1, 1), 1, a.count * 2)
 			across
 				1 |..| a.count is i
 			loop
-				Result [i] := a [i]
+				c [i] := a [i]
 			end
 			across
 				1 |..| b.count is i
 			loop
-				Result [a.count + i] := b [i]
+				c [a.count + i] := b [i]
 			end
-			{UTILS}.shuffle_deck (Result, a_seed)
+			{UTILS}.shuffle_deck (c, a_seed)
+			create Result.make_from_iterable (c)
 		end
 
 feature
@@ -148,7 +193,8 @@ feature
 
 	set_wh (a_width, a_height: INTEGER)
 		do
-			tableau.set_wh (a_width, a_height)
+			bottom.set_wh (a_width, {CARD_COMPONENT}.const_height)
+			tableau.set_wh (a_width, a_height - bottom.height)
 			tableau.propagate_height
 			Precursor {IV_LINEAR_BOX} (a_width, a_height)
 		end
