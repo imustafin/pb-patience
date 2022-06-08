@@ -34,7 +34,9 @@ feature {NONE}
 
 	bottom: IV_LINEAR_BOX
 
-	make_with_seed (a_seed: INTEGER)
+	suits: INTEGER
+
+	make_with_seed (a_suits, a_seed: INTEGER)
 		local
 			deck: LINKED_LIST [CARD_COMPONENT]
 			col: SPIDER_COLUMN
@@ -42,7 +44,8 @@ feature {NONE}
 			n: INTEGER
 			deck_image: DECK_IMAGE
 		do
-			title := "Spider #" + a_seed.out
+			suits := a_suits
+			title := "Spider #" + a_seed.out + " " + suits.out + "-suit"
 
 				-- Components
 			make_vertical (0, 0, 0, 0)
@@ -51,7 +54,7 @@ feature {NONE}
 			create bottom.make_horizontal (0, 0, 0, 0)
 			tableau.set_space_evenly
 			create columns.make
-			deck := make_deck (a_seed)
+			deck := make_deck (a_suits, a_seed)
 			across
 				1 |..| 10 is i
 			loop
@@ -117,25 +120,39 @@ feature {NONE}
 			end
 		end
 
-	make_deck (a_seed: INTEGER): LINKED_LIST [CARD_COMPONENT]
+	make_deck (a_suits, a_seed: INTEGER): LINKED_LIST [CARD_COMPONENT]
+		require
+			a_suits = 1 or a_suits = 2 or a_suits = 4
 		local
-			a, b, c: ARRAY [CARD_COMPONENT]
+			ar: ARRAY [CARD_COMPONENT]
+			gen_suits: ARRAY [INTEGER]
+			i: INTEGER
 		do
-			a := {CARD_COMPONENT}.new_deck
-			b := {CARD_COMPONENT}.new_deck
-			create c.make_filled (create {CARD_COMPONENT}.make (1, 1), 1, a.count * 2)
-			across
-				1 |..| a.count is i
-			loop
-				c [i] := a [i]
+			create ar.make_filled (create {CARD_COMPONENT}.make (1, 1), 1, 2 * 52)
+			inspect a_suits
+			when 1 then
+				gen_suits := <<{CARD_COMPONENT}.Spades, {CARD_COMPONENT}.Spades, {CARD_COMPONENT}.Spades, {CARD_COMPONENT}.Spades>>
+			when 2 then
+				gen_suits := <<{CARD_COMPONENT}.Spades, {CARD_COMPONENT}.Spades, {CARD_COMPONENT}.Hearts, {CARD_COMPONENT}.Hearts>>
+			else
+				gen_suits := <<{CARD_COMPONENT}.Hearts, {CARD_COMPONENT}.Spades, {CARD_COMPONENT}.Diamonds, {CARD_COMPONENT}.Clubs>>
 			end
+			i := 1
 			across
-				1 |..| b.count is i
+				gen_suits is suit
 			loop
-				c [a.count + i] := b [i]
+				across
+					1 |..| {CARD_COMPONENT}.ranks.count is rank
+				loop
+						-- Add two same cards
+					ar [i] := create {CARD_COMPONENT}.make (suit, rank)
+					i := i + 1
+					ar [i] := create {CARD_COMPONENT}.make (suit, rank)
+					i := i + 1
+				end
 			end
-			{UTILS}.shuffle_deck (c, a_seed)
-			create Result.make_from_iterable (c)
+			{UTILS}.shuffle_deck (ar, a_seed)
+			create Result.make_from_iterable (ar)
 		end
 
 feature
@@ -205,7 +222,7 @@ feature
 
 	new_with_seed (a_seed: INTEGER): SPIDER_GAME
 		do
-			create Result.make_with_seed (a_seed)
+			create Result.make_with_seed (suits, a_seed)
 		end
 
 end

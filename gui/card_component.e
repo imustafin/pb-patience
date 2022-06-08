@@ -64,6 +64,14 @@ feature
 			class
 		end
 
+	Hearts: INTEGER = 1
+
+	Diamonds: INTEGER = 2
+
+	Clubs: INTEGER = 3
+
+	Spades: INTEGER = 4
+
 	Ranks: ARRAY [STRING]
 		once
 			Result := <<"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K">>
@@ -126,7 +134,7 @@ feature
 			if is_face_up then
 				{IV_UTILS}.draw_text_rect (x + pad, y + pad, width - pad * 2, height - pad * 2, card_title, 0)
 			else
-				fill_area (x + 10, y  + 10, width - 20, height - 20, Dgrey)
+				fill_area (x + 10, y + 10, width - 20, height - 20, Dgrey)
 			end
 		end
 

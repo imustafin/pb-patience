@@ -38,7 +38,7 @@ feature {NONE}
 
 				-- Components
 			make_vertical (0, 0, 0, 0)
-			create {SPIDER_GAME} game.make_with_seed (since_epoch)
+			create {SPIDER_GAME} game.make_with_seed (1, since_epoch)
 			create topbar.make (0, 0, game.title, cmenu)
 			set_game (game)
 
@@ -111,12 +111,19 @@ feature -- Menu
 			when I_play_free_cell then
 				set_game (create {FREE_CELL_GAME}.make_with_seed (since_epoch))
 				show
-			when I_play_spider then
-				set_game (create {SPIDER_GAME}.make_with_seed (since_epoch))
+			when I_play_spider_1 then
+				set_game (create {SPIDER_GAME}.make_with_seed (1, since_epoch))
+				show
+			when I_play_spider_2 then
+				set_game(create {SPIDER_GAME}.make_with_seed (2, since_epoch))
+				show
+			when I_play_spider_4 then
+				set_game(create {SPIDER_GAME}.make_with_seed (4, since_epoch))
 				show
 			when I_exit then
 				close_app
 			else
+				full_update
 			end
 		end
 
@@ -126,7 +133,11 @@ feature -- Menu
 
 	I_play_free_cell: INTEGER = 300
 
-	I_play_spider: INTEGER = 400
+	I_play_spider_1: INTEGER = 400
+
+	I_play_spider_2: INTEGER = 500
+
+	I_play_spider_4: INTEGER = 600
 
 	cmenu: ICONTEXT_MENU_S_STRUCT_API
 
@@ -144,7 +155,7 @@ feature -- Menu
 
 	fill_menu_items
 		local
-			menu, games: MEMORY_ARRAY [IMENU_S_STRUCT_API]
+			menu, games, spider: MEMORY_ARRAY [IMENU_S_STRUCT_API]
 		do
 			create menu.make (5, {IMENU_S_STRUCT_API}.structure_size)
 				-- New Game
@@ -159,9 +170,22 @@ feature -- Menu
 			games [1].set_type (Item_active)
 			games [1].set_text (create {C_STRING}.make ("FreeCell"))
 			games [1].set_index (I_play_free_cell)
-			games [2].set_type (Item_active)
+
+			-- Spider submenu
+			create spider.make (3, {IMENU_S_STRUCT_API}.structure_size)
+			spider[1].set_type (Item_active)
+			spider[1].set_text (create {C_STRING}.make ("1 Suit"))
+			spider[1].set_index (I_play_spider_1)
+			spider[2].set_type (Item_active)
+			spider[2].set_text (create {C_STRING}.make ("2 Suits"))
+			spider[2].set_index (I_play_spider_2)
+			spider[3].set_type(Item_active)
+			spider[3].set_text (create {C_STRING}.make ("4 Suits"))
+			spider[3].set_index (I_play_spider_4)
+
+			games [2].set_type (Item_submenu)
 			games [2].set_text (create {C_STRING}.make ("Spider"))
-			games [2].set_index (I_play_spider)
+			games [2].set_submenu(spider[1])
 			menu [2].set_submenu (games [1])
 
 				-- Exit button
