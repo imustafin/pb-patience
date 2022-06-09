@@ -84,7 +84,9 @@ feature
 			offset: INTEGER
 			yy: INTEGER
 		do
-			offset := 60
+			if cards.count > 1 then
+				offset := ((height - {CARD_COMPONENT}.const_height) // (cards.count - 1)).min (60)
+			end
 			yy := y
 			across
 				cards is c
@@ -96,6 +98,59 @@ feature
 		end
 
 feature
+
+	is_full_stack_in_the_end: BOOLEAN
+		local
+			finish: BOOLEAN
+			last_card, c: CARD_COMPONENT
+		do
+			across
+				cards.new_cursor.reversed as i
+			until
+				finish
+			loop
+				if last_card = Void then
+					last_card := i.item
+				else
+					c := i.item
+					if not c.is_face_up then
+						finish := True
+					elseif not (c.is_next_rank_after (last_card) and c.is_same_suit (last_card)) then
+						finish := True
+					elseif i.cursor_index = {CARD_COMPONENT}.ranks.count then
+						Result := True
+						finish := True
+					else
+						last_card := c
+					end
+				end
+			end
+		end
+
+	last: CARD_COMPONENT
+		require
+			not is_empty
+		do
+			Result := cards.last
+		end
+
+	remove_full_stack
+		require
+			is_full_stack_in_the_end
+		do
+			cards.finish
+			across
+				1 |..| {CARD_COMPONENT}.ranks.count is i
+			loop
+				cards.remove
+				cards.back
+			end
+			if not cards.is_empty then
+				cards.last.flip_face_up
+			end
+		ensure
+			cards.count = old cards.count - {CARD_COMPONENT}.ranks.count
+		end
 
 	movable_stack_at (a_x, a_y: INTEGER_32): INTEGER
 			-- `0` for failed tap or
@@ -120,7 +175,9 @@ feature
 				not Result
 			loop
 				c := cards.i_th (i)
-				if prev_card = Void then
+				if not c.is_face_up then
+					Result := False
+				elseif prev_card = Void then
 					prev_card := c
 				else
 					Result := c.is_same_suit (prev_card) and prev_card.is_next_rank_after (c)

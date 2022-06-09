@@ -41,9 +41,9 @@ feature
 		local
 			card: CARD_COMPONENT
 		do
-			fill_area (x, y, width, height, White)
+
 			if cards.is_empty then
-					-- Leave white space
+			fill_area (x, y, width, height, White)
 			else
 				create card.make (1, 1)
 				card.flip_face_down

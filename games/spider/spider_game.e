@@ -32,6 +32,8 @@ feature {NONE}
 
 	columns: LINKED_LIST [SPIDER_COLUMN]
 
+	foundations: LINKED_LIST[SPIDER_FOUNDATION]
+
 	bottom: IV_LINEAR_BOX
 
 	suits: INTEGER
@@ -45,13 +47,15 @@ feature {NONE}
 			deck_image: DECK_IMAGE
 		do
 			suits := a_suits
-			title := "Spider #" + a_seed.out + " " + suits.out + "-suit"
+			title := suits.out + "-Suit Spider #" + a_seed.out
 
 				-- Components
 			make_vertical (0, 0, 0, 0)
 			set_align_center
+			set_space_evenly
 			create tableau.make_horizontal (0, 0, 0, 0)
 			create bottom.make_horizontal (0, 0, 0, 0)
+			create foundations.make
 			tableau.set_space_evenly
 			create columns.make
 			deck := make_deck (a_suits, a_seed)
@@ -66,9 +70,17 @@ feature {NONE}
 			deal_cards (deck)
 			extend (tableau)
 
+			across
+				1 |..| 8 is i
+			loop
+				foundations.extend (create {SPIDER_FOUNDATION}.make)
+			end
+			bottom.append (foundations)
+
 				-- Bottom bar with fundations and deck
 
 			bottom.set_space_evenly
+			bottom.extend (create {IV_SPACE}.make ({CARD_COMPONENT}.const_width, 0))
 			create deck_image.make (deck)
 			deck_image.set_on_pointer_down (agent  (d: DECK_IMAGE; a_x, a_y: INTEGER): BOOLEAN
 				local
@@ -155,7 +167,7 @@ feature {NONE}
 			create Result.make_from_iterable (ar)
 		end
 
-feature
+feature {NONE}
 
 	active_column: detachable SPIDER_COLUMN
 
@@ -182,9 +194,19 @@ feature
 
 				-- Column pointer up
 			a_column.set_on_pointer_up (agent  (c: SPIDER_COLUMN; a_x, a_y: INTEGER): BOOLEAN
+				local
+					f: SPIDER_FOUNDATION
 				do
 					if attached active_column as ac and then (ac /= c and c.is_valid_card (ac.i_th (active_index))) then
 						ac.transfer_to (active_index, c)
+						ac.layout
+						if c.is_full_stack_in_the_end then
+							f := next_free_foundation
+							f.set_card(c.last)
+							f.draw
+
+							c.remove_full_stack
+						end
 						c.layout
 						ac.draw
 						c.draw
@@ -193,6 +215,22 @@ feature
 					end
 					Result := True
 				end (a_column, ?, ?))
+		end
+
+	next_free_foundation: SPIDER_FOUNDATION
+		require
+			across foundations is f some f.is_empty  end
+		do
+			across
+				foundations is foundation
+			until
+				Result /= Void
+			loop
+				if foundation.is_empty then
+					Result := foundation
+				end
+			end
+			check Result /= Void then end
 		end
 
 	do_on_pointer_up (a_x, a_y: INTEGER_32): BOOLEAN
@@ -211,7 +249,7 @@ feature
 	set_wh (a_width, a_height: INTEGER)
 		do
 			bottom.set_wh (a_width, {CARD_COMPONENT}.const_height)
-			tableau.set_wh (a_width, a_height - bottom.height)
+			tableau.set_wh (a_width, a_height - bottom.height - 10)
 			tableau.propagate_height
 			Precursor {IV_LINEAR_BOX} (a_width, a_height)
 		end
