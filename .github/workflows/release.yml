@@ -1,0 +1,108 @@
+name: Release
+on: [push]
+jobs:
+  Release:
+    runs-on: ubuntu-latest
+    env:
+      GLOBAL_CACHE_VERSION: 111112
+      BUILD_PATH: repo
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          path: ${{ env.BUILD_PATH }}
+
+      - name: Checkout wrap_inkview
+        uses: actions/checkout@v3
+        with:
+          repository: imustafin/wrap_inkview
+          path: wrap_inkview
+          ref: 4e39d9a967f84aad0348ccecc4c5c02b8d54e521
+
+      - name: Install estudio deps
+        run: sudo apt-get install -y libgtk2.0-dev libxtst-dev
+
+      - name: Compute envs 1
+        run: |
+          SDK_DOWNLOAD_PATH=${{ github.workspace }}/SDK
+          echo "SDK_DOWNLOAD_PATH=$SDK_DOWNLOAD_PATH" >> $GITHUB_ENV
+
+          SDK_PATH=$SDK_DOWNLOAD_PATH/SDK-A13
+          echo "SDK_PATH=$SDK_PATH" >> $GITHUB_ENV
+
+          SDK_SYSROOT=$SDK_PATH/usr/arm-obreey-linux-gnueabi/sysroot
+          echo "SDK_SYSROOT=$SDK_SYSROOT" >> $GITHUB_ENV
+
+          ESTUDIO_DOWNLOAD_PATH=${{ github.workspace }}/estudio
+          echo "ESTUDIO_DOWNLOAD_PATH=$ESTUDIO_DOWNLOAD_PATH" >> $GITHUB_ENV
+
+          ISE_PLATFORM=linux-x86-64_arm-obreey-linux-gnueabi
+          echo "ISE_PLATFORM=$ISE_PLATFORM" >> $GITHUB_ENV
+
+          CC=$SDK_PATH/usr/bin/arm-obreey-linux-gnueabi-clang
+          echo "CC=$CC" >> $GITHUB_ENV
+          echo "CPP=$CC++" >> $GITHUB_ENV
+
+          ISE_EIFFEL=$ESTUDIO_DOWNLOAD_PATH
+          echo "ISE_EIFFEL=$ISE_EIFFEL" >> $GITHUB_ENV
+
+          EBIN=$ISE_EIFFEL/studio/spec/$ISE_PLATFORM/bin
+          echo "EBIN=$EBIN" >> $GITHUB_ENV
+          
+          echo "$EBIN" >> $GITHUB_PATH
+
+      - name: Cache SDK
+        id: cache-sdk
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.SDK_DOWNLOAD_PATH }}
+          key: ${{ runner.os }}-sdk-${{ env.GLOBAL_CACHE_VERSION }}
+
+      - name: Checkout SDK
+        if: steps.cache-sdk.outputs.cache-hit != 'true'
+        uses: actions/checkout@v3
+        with:
+          repository:  pocketbook/SDK_6.3.0 
+          ref: 23eb32c3a011a1df4ce3d8f22150dcdd34cbc75a
+          path: ${{ env.SDK_DOWNLOAD_PATH }}
+
+      - name: Remove unused SDK variants
+        if: steps.cache-sdk.outputs.cache-hit != 'true'
+        run:
+          rm -rf $SDK_DOWNLOAD_PATH/SDK-{B288,iMX6}
+
+      - name: Cache estudio
+        id: cache-estudio
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.ESTUDIO_DOWNLOAD_PATH }}
+          key: ${{ runner.os }}-sdk-${{ env.GLOBAL_CACHE_VERSION }}
+
+      - name: Download estudio and PB platform
+        if: steps.cache-estudio.outputs.cache-hit != 'true'
+        run: |
+          file=Eiffel_19.05_gpl_103187-linux-x86-64.tar.bz2
+          wget -nv https://ftp.eiffel.com/pub/download/19.05/$file
+          tar -xf $file
+          mv Eiffel_19.05 $ESTUDIO_DOWNLOAD_PATH
+
+          cd $ESTUDIO_DOWNLOAD_PATH
+          zip=linux-x86-64_arm-obreey-linux-gnueabi.zip
+          wget -nv https://github.com/imustafin/estudio-cross-configs/releases/download/v0.0.1-rc/$zip
+          unzip -qq $zip
+          chmod +x $EBIN/*
+          cd ..
+
+      - name: Build finalized
+        run: |
+          cd $BUILD_PATH
+          ec -stop -finalize -config pb-patience.ecf -c_compile -batch
+          mv EIFGENs/pb-patience/F_code/pb-patience.app ../pb-patience.app
+          ec -stop -finalize -keep -config pb-patience.ecf -c_compile -batch -file pb-patience-debug.app
+          mv EIFGENs/pb-patience/F_code/pb-patience.app ../pb-patience-assertions.app
+
+      - name: Save artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Executables
+          path: pb-patience*.app
