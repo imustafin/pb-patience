@@ -115,16 +115,34 @@ feature -- Menu
 				set_game (create {SPIDER_GAME}.make_with_seed (1, since_epoch))
 				show
 			when I_play_spider_2 then
-				set_game(create {SPIDER_GAME}.make_with_seed (2, since_epoch))
+				set_game (create {SPIDER_GAME}.make_with_seed (2, since_epoch))
 				show
 			when I_play_spider_4 then
-				set_game(create {SPIDER_GAME}.make_with_seed (4, since_epoch))
+				set_game (create {SPIDER_GAME}.make_with_seed (4, since_epoch))
 				show
 			when I_exit then
 				close_app
+			when I_about then
+				about_dialog
 			else
 				full_update
 			end
+		end
+
+	about_dialog
+		local
+			text: STRING_32
+		do
+			text := "pb-patience%NPocketBook Patience Collection%NVersion: " + {VERSION}.version + "%N%N"
+			text := text + "[
+				Written in Eiffel by Ilgiz Mustafin
+				
+				Released under GPL2
+				
+				For new releases and bug reports visit
+				https://github.com/imustafin/pb-patience
+			]"
+			{IV_UTILS}.dialog_32 (0, "About", text, "Close", Void, {POINTER}.default_pointer)
 		end
 
 	I_exit: INTEGER = 100
@@ -138,6 +156,8 @@ feature -- Menu
 	I_play_spider_2: INTEGER = 500
 
 	I_play_spider_4: INTEGER = 600
+
+	I_about: INTEGER = 700
 
 	cmenu: ICONTEXT_MENU_S_STRUCT_API
 
@@ -157,7 +177,7 @@ feature -- Menu
 		local
 			menu, games, spider: MEMORY_ARRAY [IMENU_S_STRUCT_API]
 		do
-			create menu.make (5, {IMENU_S_STRUCT_API}.structure_size)
+			create menu.make (6, {IMENU_S_STRUCT_API}.structure_size)
 				-- New Game
 			menu [1].set_type (Item_active)
 			menu [1].set_text (create {C_STRING}.make ("New game"))
@@ -171,27 +191,31 @@ feature -- Menu
 			games [1].set_text (create {C_STRING}.make ("FreeCell"))
 			games [1].set_index (I_play_free_cell)
 
-			-- Spider submenu
+				-- Spider submenu
 			create spider.make (3, {IMENU_S_STRUCT_API}.structure_size)
-			spider[1].set_type (Item_active)
-			spider[1].set_text (create {C_STRING}.make ("1 Suit"))
-			spider[1].set_index (I_play_spider_1)
-			spider[2].set_type (Item_active)
-			spider[2].set_text (create {C_STRING}.make ("2 Suits"))
-			spider[2].set_index (I_play_spider_2)
-			spider[3].set_type(Item_active)
-			spider[3].set_text (create {C_STRING}.make ("4 Suits"))
-			spider[3].set_index (I_play_spider_4)
-
+			spider [1].set_type (Item_active)
+			spider [1].set_text (create {C_STRING}.make ("1 Suit"))
+			spider [1].set_index (I_play_spider_1)
+			spider [2].set_type (Item_active)
+			spider [2].set_text (create {C_STRING}.make ("2 Suits"))
+			spider [2].set_index (I_play_spider_2)
+			spider [3].set_type (Item_active)
+			spider [3].set_text (create {C_STRING}.make ("4 Suits"))
+			spider [3].set_index (I_play_spider_4)
 			games [2].set_type (Item_submenu)
 			games [2].set_text (create {C_STRING}.make ("Spider"))
-			games [2].set_submenu(spider[1])
+			games [2].set_submenu (spider [1])
 			menu [2].set_submenu (games [1])
 
-				-- Exit button
+				-- About button
 			menu [3].set_type (Item_active)
-			menu [3].set_text (create {C_STRING}.make ("Exit"))
-			menu [3].set_index (I_exit)
+			menu [3].set_text (create {C_STRING}.make ("About"))
+			menu [3].set_index (I_about)
+
+				-- Exit button
+			menu [4].set_type (Item_active)
+			menu [4].set_text (create {C_STRING}.make ("Exit"))
+			menu [4].set_index (I_exit)
 			cmenu.set_menu (menu [1])
 		end
 

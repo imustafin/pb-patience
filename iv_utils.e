@@ -47,4 +47,21 @@ feature
 			class
 		end
 
+	dialog_32 (a_icon: INTEGER; a_title, a_text: STRING_32; a_button_1, a_button_2: detachable STRING_32; hproc: POINTER)
+		local
+			title, text, b1, b2: POINTER
+		do
+			title := printable_string_32_pointer(a_title)
+			text := printable_string_32_pointer(a_text)
+			if attached a_button_1 then
+				b1 := printable_string_32_pointer(a_button_1)
+			end
+			if attached a_button_2 then
+				b2 := printable_string_32_pointer(a_button_2)
+			end
+			c_dialog(a_icon, title, text, b1, b2, hproc)
+		ensure
+			class
+		end
+
 end
