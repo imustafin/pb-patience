@@ -6,6 +6,8 @@ jobs:
     env:
       GLOBAL_CACHE_VERSION: 111112
       BUILD_PATH: repo
+      WRAP_INKVIEW_REF: 8eb8617b8df96b0e92c36f014b9c01c8bc533143
+      PLATFORM_LINK: https://github.com/imustafin/estudio-cross-configs/releases/download/v0.0.1-rc2/linux-x86-64_arm-obreey-linux-gnueabi.zip
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -17,7 +19,7 @@ jobs:
         with:
           repository: imustafin/wrap_inkview
           path: wrap_inkview
-          ref: 4e39d9a967f84aad0348ccecc4c5c02b8d54e521
+          ref: ${{ env.WRAP_INKVIEW_REF }}
 
       - name: Install estudio deps
         run: sudo apt-get install -y libgtk2.0-dev libxtst-dev
@@ -76,7 +78,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.ESTUDIO_DOWNLOAD_PATH }}
-          key: ${{ runner.os }}-sdk-${{ env.GLOBAL_CACHE_VERSION }}
+          key: ${{ runner.os }}-sdk-${{ env.GLOBAL_CACHE_VERSION }}-${{ env.ESTUDIO_DOWNLOAD_PATH }}
 
       - name: Download estudio and PB platform
         if: steps.cache-estudio.outputs.cache-hit != 'true'
@@ -88,7 +90,7 @@ jobs:
 
           cd $ESTUDIO_DOWNLOAD_PATH
           zip=linux-x86-64_arm-obreey-linux-gnueabi.zip
-          wget -nv https://github.com/imustafin/estudio-cross-configs/releases/download/v0.0.1-rc/$zip
+          wget -nv $PLATFORM_LINK
           unzip -qq $zip
           chmod +x $EBIN/*
           cd ..
